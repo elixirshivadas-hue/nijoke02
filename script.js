@@ -1468,14 +1468,11 @@ function answerQuestion(
 
 
       if (
-        index ===
-        selectedIndex &&
-        index !==
-        question.correct
-      ) {
-
-        button.classList.add(
-          "wrong"
+  index === selectedIndex &&
+  index !== question.correct
+) {
+  button.classList.add("wrong");
+      }
         );
 
       }
