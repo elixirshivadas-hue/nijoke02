@@ -1,153 +1,116 @@
 "use strict";
 
 /* =========================================================
-   NIJOK 3.0 — PART 3A
-   CORE GAME ENGINE
-   ---------------------------------------------------------
-   • Food Quiz
-   • Guess the Food
-   • Match the Pair
-   • Time Challenge
-   • Daily Challenge
-   • Question rendering
-   • Answer system
-   • Score system foundation
-   • Daily limits
+   NIJOK — CLEAN GAME ENGINE
+   Version 3.0
    ========================================================= */
 
-
-/* =========================================================
-   1. NIJOK GAME CONFIGURATION
-   ========================================================= */
+/* ---------------------------------------------------------
+   1. CONFIGURATION
+--------------------------------------------------------- */
 
 const NIJOK = {
-
-  version: "3.0",
-
   limits: {
-    quiz: 20,
     guess: 10,
+    quiz: 20,
     match: 5,
     time: 10,
     daily: 1
   },
 
   points: {
-    quiz: 10,
     guess: 10,
+    quiz: 10,
     match: 15,
     time: 20,
     daily: 20
   },
 
-  timeLimit: 15
+  timeLimit: 15,
 
+  storageKey: "nijokPlayer"
 };
 
 
-/* =========================================================
-   2. PLAYER STORAGE
-   ---------------------------------------------------------
-   Part 3B will expand this system.
-   ========================================================= */
-
-const STORAGE_KEY = "nijokPlayer";
+/* ---------------------------------------------------------
+   2. PLAYER
+--------------------------------------------------------- */
 
 const defaultPlayer = {
-
-  name: "Guest Explorer",
-
+  name: "",
   email: "",
-
   loggedIn: false,
 
   totalScore: 0,
-
   gamesPlayed: 0,
-
   correctAnswers: 0,
 
   level: 1,
-
   streak: 0,
 
-  badges: [],
-
   today: {
-
     date: "",
-
-    quiz: 0,
-
     guess: 0,
-
+    quiz: 0,
     match: 0,
-
     time: 0,
-
     daily: 0
-
   }
-
 };
 
 
-function createDefaultPlayer() {
+let player = loadPlayer();
 
-  return JSON.parse(
-    JSON.stringify(defaultPlayer)
-  );
 
-}
-
+/* ---------------------------------------------------------
+   3. STORAGE
+--------------------------------------------------------- */
 
 function loadPlayer() {
-
   try {
-
     const saved =
-      localStorage.getItem(STORAGE_KEY);
+      localStorage.getItem(
+        NIJOK.storageKey
+      );
 
     if (!saved) {
-
-      return createDefaultPlayer();
-
+      return createFreshPlayer();
     }
 
     const data =
       JSON.parse(saved);
 
     return {
-
-      ...createDefaultPlayer(),
-
+      ...defaultPlayer,
       ...data,
-
       today: {
-
-        ...createDefaultPlayer().today,
-
+        ...defaultPlayer.today,
         ...(data.today || {})
-
       }
-
     };
 
   } catch (error) {
 
     console.error(
-      "NIJOK player storage error:",
+      "NIJOK player loading error:",
       error
     );
 
-    return createDefaultPlayer();
-
+    return createFreshPlayer();
   }
-
 }
 
 
-let player = loadPlayer();
+function createFreshPlayer() {
+
+  return {
+    ...defaultPlayer,
+
+    today: {
+      ...defaultPlayer.today
+    }
+  };
+}
 
 
 function savePlayer() {
@@ -155,52 +118,47 @@ function savePlayer() {
   try {
 
     localStorage.setItem(
-      STORAGE_KEY,
+      NIJOK.storageKey,
       JSON.stringify(player)
     );
 
   } catch (error) {
 
     console.error(
-      "NIJOK save error:",
+      "NIJOK player save error:",
       error
     );
 
   }
-
 }
 
 
-/* =========================================================
-   3. DATE SYSTEM
-   ========================================================= */
+/* ---------------------------------------------------------
+   4. DAILY RESET
+--------------------------------------------------------- */
 
-function todayKey() {
+function getTodayKey() {
 
   const date =
     new Date();
 
   return [
-
     date.getFullYear(),
-
     String(
       date.getMonth() + 1
     ).padStart(2, "0"),
-
     String(
       date.getDate()
     ).padStart(2, "0")
-
   ].join("-");
 
 }
 
 
-function resetDailyProgress() {
+function checkDailyReset() {
 
   const today =
-    todayKey();
+    getTodayKey();
 
 
   if (
@@ -209,19 +167,12 @@ function resetDailyProgress() {
   ) {
 
     player.today = {
-
       date: today,
-
-      quiz: 0,
-
       guess: 0,
-
+      quiz: 0,
       match: 0,
-
       time: 0,
-
       daily: 0
-
     };
 
     savePlayer();
@@ -231,1086 +182,589 @@ function resetDailyProgress() {
 }
 
 
-/* =========================================================
-   4. GAME INFORMATION
-   ========================================================= */
-
-const gameInfo = {
-
-  quiz: {
-
-    label: "FOOD QUIZ",
-
-    title: "Food Quiz",
-
-    description:
-      "Test your knowledge of food, culture and ingredients."
-
-  },
-
-  guess: {
-
-    label: "GUESS THE FOOD",
-
-    title: "Guess the Food",
-
-    description:
-      "Identify the food and discover its story."
-
-  },
-
-  match: {
-
-    label: "MATCH THE PAIR",
-
-    title: "Match the Pair",
-
-    description:
-      "Find the correct food connection."
-
-  },
-
-  time: {
-
-    label: "TIME CHALLENGE",
-
-    title: "Time Challenge",
-
-    description:
-      "Think fast, answer quickly and score more points."
-
-  },
-
-  daily: {
-
-    label: "TODAY'S CHALLENGE",
-
-    title: "Daily Challenge",
-
-    description:
-      "One special question to keep your Food Journey moving."
-
-  }
-
-};
-
-
-/* =========================================================
+/* ---------------------------------------------------------
    5. QUESTION BANK
-   ---------------------------------------------------------
-   Foundation bank.
-   Later this structure can hold 100 days / 500+ questions.
-   ========================================================= */
+--------------------------------------------------------- */
 
-const questions = {
-
-
-  /* =======================================================
-     FOOD QUIZ
-     ======================================================= */
+const QUESTION_BANK = {
 
   quiz: [
 
     {
-
       question:
-        "Which fruit is strongly associated with Kashmir?",
-
+        "Which nutrient is mainly responsible for building and repairing body tissues?",
       answers: [
-
-        "Apple",
-
-        "Banana",
-
-        "Papaya",
-
-        "Pineapple"
-
-      ],
-
-      correct: 0
-
-    },
-
-    {
-
-      question:
-        "Which compound gives turmeric its characteristic yellow colour?",
-
-      answers: [
-
-        "Curcumin",
-
-        "Caffeine",
-
-        "Pectin",
-
-        "Lycopene"
-
-      ],
-
-      correct: 0
-
-    },
-
-    {
-
-      question:
-        "Which grain is commonly used in idli?",
-
-      answers: [
-
-        "Rice",
-
-        "Barley",
-
-        "Corn",
-
-        "Oats"
-
-      ],
-
-      correct: 0
-
-    },
-
-    {
-
-      question:
-        "Which mineral is important for normal bones and teeth?",
-
-      answers: [
-
-        "Calcium",
-
-        "Sodium",
-
-        "Iron",
-
-        "Iodine"
-
-      ],
-
-      correct: 0
-
-    },
-
-    {
-
-      question:
-        "Which food is a common source of plant protein?",
-
-      answers: [
-
-        "Lentils",
-
+        "Protein",
         "Sugar",
-
-        "Salt",
-
-        "Cooking oil"
-
-      ],
-
-      correct: 0
-
-    },
-
-    {
-
-      question:
-        "Which nutrient is the body's main quick source of energy?",
-
-      answers: [
-
-        "Carbohydrate",
-
         "Water",
-
-        "Minerals",
-
-        "Vitamins"
-
+        "Salt"
       ],
-
       correct: 0
-
     },
 
     {
-
       question:
-        "Which vitamin is commonly produced by the body after sunlight exposure?",
-
+        "Which of these is naturally rich in vitamin C?",
       answers: [
-
-        "Vitamin D",
-
-        "Vitamin C",
-
-        "Vitamin K",
-
-        "Vitamin B1"
-
+        "Orange",
+        "White rice",
+        "Butter",
+        "Salt"
       ],
-
       correct: 0
-
     },
 
     {
-
       question:
-        "Which food naturally contains dietary fibre?",
-
+        "What does the ingredient list on packaged food show?",
       answers: [
-
-        "Whole grains",
-
-        "Refined sugar",
-
-        "Salt",
-
-        "Cooking oil"
-
-      ],
-
-      correct: 0
-
-    },
-
-    {
-
-      question:
-        "What does an ingredient list tell you?",
-
-      answers: [
-
         "Ingredients used in the product",
-
         "Only the price",
-
-        "Only the advertisement",
-
-        "Only the brand history"
-
+        "Only the brand name",
+        "Only the expiry date"
       ],
-
       correct: 0
-
     },
 
     {
-
       question:
-        "Why can comparing food labels be useful?",
-
+        "Which nutrient provides the most energy per gram?",
       answers: [
-
-        "To understand differences between products",
-
-        "To choose the biggest package",
-
-        "To follow advertisements",
-
-        "To choose the brightest package"
-
+        "Fat",
+        "Protein",
+        "Water",
+        "Minerals"
       ],
-
       correct: 0
-
     },
 
     {
-
-      question:
-        "Which food is traditionally associated with Punjab?",
-
-      answers: [
-
-        "Sarson da saag",
-
-        "Sushi",
-
-        "Tacos",
-
-        "Pasta"
-
-      ],
-
-      correct: 0
-
-    },
-
-    {
-
-      question:
-        "Which drink is strongly associated with Assam?",
-
-      answers: [
-
-        "Tea",
-
-        "Cocoa",
-
-        "Lassi",
-
-        "Lemonade"
-
-      ],
-
-      correct: 0
-
-    },
-
-    {
-
-      question:
-        "Which ingredient is commonly used to make bread rise?",
-
-      answers: [
-
-        "Yeast",
-
-        "Salt",
-
-        "Turmeric",
-
-        "Sugar syrup"
-
-      ],
-
-      correct: 0
-
-    },
-
-    {
-
-      question:
-        "Which food is made from fermented batter in many Indian cuisines?",
-
-      answers: [
-
-        "Idli",
-
-        "French fries",
-
-        "Chocolate",
-
-        "Popcorn"
-
-      ],
-
-      correct: 0
-
-    },
-
-    {
-
-      question:
-        "Which spice is commonly known for its strong aroma and warm flavour?",
-
-      answers: [
-
-        "Cardamom",
-
-        "Apple",
-
-        "Rice",
-
-        "Milk"
-
-      ],
-
-      correct: 0
-
-    },
-
-    {
-
-      question:
-        "Which of these is a legume?",
-
-      answers: [
-
-        "Chickpea",
-
-        "Apple",
-
-        "Rice",
-
-        "Coconut water"
-
-      ],
-
-      correct: 0
-
-    },
-
-    {
-
-      question:
-        "Which food is traditionally associated with Kerala?",
-
-      answers: [
-
-        "Appam",
-
-        "Sushi",
-
-        "Croissant",
-
-        "Tacos"
-
-      ],
-
-      correct: 0
-
-    },
-
-    {
-
-      question:
-        "Which ingredient gives chilli its heat?",
-
-      answers: [
-
-        "Capsaicin",
-
-        "Curcumin",
-
-        "Glucose",
-
-        "Pectin"
-
-      ],
-
-      correct: 0
-
-    },
-
-    {
-
       question:
         "Which of these is a whole grain?",
-
       answers: [
-
         "Brown rice",
-
         "Refined sugar",
-
         "Table salt",
-
-        "Cooking oil"
-
+        "Butter"
       ],
-
       correct: 0
-
     },
 
     {
-
       question:
-        "Which food is traditionally associated with Japan?",
-
+        "What does the expiry date generally tell a consumer?",
       answers: [
-
-        "Sushi",
-
-        "Biryani",
-
-        "Dhokla",
-
-        "Pav bhaji"
-
+        "The date after which the product should not be consumed",
+        "The manufacturing cost",
+        "The shop opening time",
+        "The brand's age"
       ],
-
       correct: 0
+    },
 
+    {
+      question:
+        "Which mineral is commonly associated with strong bones and teeth?",
+      answers: [
+        "Calcium",
+        "Sodium",
+        "Sugar",
+        "Caffeine"
+      ],
+      correct: 0
+    },
+
+    {
+      question:
+        "Which of these is a source of dietary fibre?",
+      answers: [
+        "Fruits and vegetables",
+        "Refined oil",
+        "Table salt",
+        "Plain sugar"
+      ],
+      correct: 0
+    },
+
+    {
+      question:
+        "What does 'per 100 g' on a nutrition label help you do?",
+      answers: [
+        "Compare nutritional values between foods",
+        "Find the shop location",
+        "Find the brand owner",
+        "Know the package colour"
+      ],
+      correct: 0
+    },
+
+    {
+      question:
+        "Which ingredient is a common source of sweetness in packaged foods?",
+      answers: [
+        "Sugar",
+        "Water",
+        "Fibre",
+        "Calcium"
+      ],
+      correct: 0
+    },
+
+    {
+      question:
+        "Which macronutrient is found in foods such as rice, potatoes and grains?",
+      answers: [
+        "Carbohydrate",
+        "Vitamin C",
+        "Calcium",
+        "Water"
+      ],
+      correct: 0
+    },
+
+    {
+      question:
+        "Which of these is a fermented food?",
+      answers: [
+        "Curd",
+        "Table salt",
+        "Refined sugar",
+        "Cooking oil"
+      ],
+      correct: 0
+    },
+
+    {
+      question:
+        "What is sodium commonly found in?",
+      answers: [
+        "Salt",
+        "Fruit fibre",
+        "Vitamin C",
+        "Water"
+      ],
+      correct: 0
+    },
+
+    {
+      question:
+        "Which food is generally a source of plant protein?",
+      answers: [
+        "Lentils",
+        "Table sugar",
+        "Salt",
+        "Cooking oil"
+      ],
+      correct: 0
+    },
+
+    {
+      question:
+        "What should you check when buying packaged food?",
+      answers: [
+        "Ingredients, nutrition information and dates",
+        "Only the package colour",
+        "Only the logo",
+        "Only the advertisement"
+      ],
+      correct: 0
+    },
+
+    {
+      question:
+        "Which of these contains naturally occurring dietary fibre?",
+      answers: [
+        "Apple",
+        "Refined oil",
+        "Salt",
+        "Sugar"
+      ],
+      correct: 0
+    },
+
+    {
+      question:
+        "Which nutrient is essential for normal body functions but provides no calories?",
+      answers: [
+        "Vitamins",
+        "Fat",
+        "Carbohydrate",
+        "Protein"
+      ],
+      correct: 0
+    },
+
+    {
+      question:
+        "Why is reading a food label useful?",
+      answers: [
+        "It helps you understand what you are buying",
+        "It guarantees the food is perfect for everyone",
+        "It tells you how popular the brand is",
+        "It replaces all other food information"
+      ],
+      correct: 0
+    },
+
+    {
+      question:
+        "Which of these is a natural source of healthy fats?",
+      answers: [
+        "Nuts",
+        "Table sugar",
+        "Salt",
+        "Soft drink"
+      ],
+      correct: 0
+    },
+
+    {
+      question:
+        "What is the main purpose of a nutrition information panel?",
+      answers: [
+        "To provide information about nutrients in the food",
+        "To advertise another product",
+        "To show the shop address only",
+        "To show the brand history"
+      ],
+      correct: 0
     }
 
   ],
 
-
-  /* =======================================================
-     GUESS THE FOOD
-     ======================================================= */
 
   guess: [
 
     {
-
       question:
-        "🍛 Which food is this?",
-
+        "I am yellow, curved and commonly eaten as a fruit. What am I?",
       answers: [
-
-        "Biryani",
-
-        "Pizza",
-
-        "Sushi",
-
-        "Pasta"
-
-      ],
-
-      correct: 0
-
-    },
-
-    {
-
-      question:
-        "🥭 Which fruit is this?",
-
-      answers: [
-
-        "Mango",
-
-        "Apple",
-
-        "Orange",
-
-        "Pear"
-
-      ],
-
-      correct: 0
-
-    },
-
-    {
-
-      question:
-        "🍣 Which food is this?",
-
-      answers: [
-
-        "Sushi",
-
-        "Biryani",
-
-        "Noodles",
-
-        "Dosa"
-
-      ],
-
-      correct: 0
-
-    },
-
-    {
-
-      question:
-        "🍕 Which food is this?",
-
-      answers: [
-
-        "Pizza",
-
-        "Idli",
-
-        "Samosa",
-
-        "Biryani"
-
-      ],
-
-      correct: 0
-
-    },
-
-    {
-
-      question:
-        "🥥 Which food ingredient is this?",
-
-      answers: [
-
-        "Coconut",
-
-        "Turmeric",
-
-        "Cardamom",
-
-        "Wheat"
-
-      ],
-
-      correct: 0
-
-    },
-
-    {
-
-      question:
-        "🌶️ Which ingredient is this?",
-
-      answers: [
-
-        "Chilli",
-
-        "Apple",
-
-        "Rice",
-
-        "Milk"
-
-      ],
-
-      correct: 0
-
-    },
-
-    {
-
-      question:
-        "🍵 Which drink is this?",
-
-      answers: [
-
-        "Tea",
-
-        "Coffee",
-
-        "Soup",
-
-        "Juice"
-
-      ],
-
-      correct: 0
-
-    },
-
-    {
-
-      question:
-        "🍚 Which staple food is this?",
-
-      answers: [
-
-        "Rice",
-
-        "Bread",
-
-        "Cheese",
-
-        "Pasta"
-
-      ],
-
-      correct: 0
-
-    },
-
-    {
-
-      question:
-        "🥔 Which vegetable is this?",
-
-      answers: [
-
-        "Potato",
-
-        "Carrot",
-
-        "Tomato",
-
-        "Onion"
-
-      ],
-
-      correct: 0
-
-    },
-
-    {
-
-      question:
-        "🍎 Which fruit is this?",
-
-      answers: [
-
-        "Apple",
-
-        "Mango",
-
         "Banana",
-
-        "Papaya"
-
+        "Apple",
+        "Carrot",
+        "Coconut"
       ],
-
       correct: 0
+    },
 
+    {
+      question:
+        "I am a round red fruit often used in salads and cooking. What am I?",
+      answers: [
+        "Tomato",
+        "Banana",
+        "Rice",
+        "Lentil"
+      ],
+      correct: 0
+    },
+
+    {
+      question:
+        "I am made from tea leaves and hot water. What am I?",
+      answers: [
+        "Tea",
+        "Curd",
+        "Rice",
+        "Dal"
+      ],
+      correct: 0
+    },
+
+    {
+      question:
+        "I am a staple grain eaten across India and often cooked with water. What am I?",
+      answers: [
+        "Rice",
+        "Apple",
+        "Milk",
+        "Almond"
+      ],
+      correct: 0
+    },
+
+    {
+      question:
+        "I am made by grinding wheat and am commonly used to make roti. What am I?",
+      answers: [
+        "Wheat flour",
+        "Tea",
+        "Sugar",
+        "Salt"
+      ],
+      correct: 0
+    },
+
+    {
+      question:
+        "I am a green leafy vegetable often cooked as a sabzi. What am I?",
+      answers: [
+        "Spinach",
+        "Banana",
+        "Rice",
+        "Sugar"
+      ],
+      correct: 0
+    },
+
+    {
+      question:
+        "I am small, brown or green and often used in dal. What am I?",
+      answers: [
+        "Lentil",
+        "Orange",
+        "Butter",
+        "Salt"
+      ],
+      correct: 0
+    },
+
+    {
+      question:
+        "I am a tropical fruit with a hard shell and water inside. What am I?",
+      answers: [
+        "Coconut",
+        "Apple",
+        "Potato",
+        "Carrot"
+      ],
+      correct: 0
+    },
+
+    {
+      question:
+        "I am orange and crunchy and commonly eaten raw or cooked. What am I?",
+      answers: [
+        "Carrot",
+        "Rice",
+        "Curd",
+        "Tea"
+      ],
+      correct: 0
+    },
+
+    {
+      question:
+        "I am made from milk and commonly eaten with meals in India. What am I?",
+      answers: [
+        "Curd",
+        "Sugar",
+        "Rice",
+        "Salt"
+      ],
+      correct: 0
     }
 
   ],
 
-
-  /* =======================================================
-     MATCH THE PAIR
-     ======================================================= */
 
   match: [
 
     {
-
       question:
-        "Which pair is correct?",
-
+        "Match the food with its category.",
+      left: "Apple",
       answers: [
-
-        "Darjeeling — Tea",
-
-        "Kashmir — Coconut",
-
-        "Kerala — Saffron",
-
-        "Punjab — Sushi"
-
+        "Fruit",
+        "Grain",
+        "Pulse",
+        "Spice"
       ],
-
       correct: 0
-
     },
 
     {
-
       question:
-        "Which pair is correct?",
-
+        "Match the food with its category.",
+      left: "Rice",
       answers: [
-
-        "Assam — Tea",
-
-        "Japan — Biryani",
-
-        "Italy — Idli",
-
-        "Punjab — Sushi"
-
+        "Fruit",
+        "Grain",
+        "Dairy",
+        "Nut"
       ],
-
-      correct: 0
-
+      correct: 1
     },
 
     {
-
       question:
-        "Which pair is correct?",
-
+        "Match the food with its category.",
+      left: "Lentil",
       answers: [
-
-        "Kashmir — Apple",
-
-        "Japan — Biryani",
-
-        "Kerala — Tacos",
-
-        "Italy — Dosa"
-
+        "Pulse",
+        "Fruit",
+        "Oil",
+        "Dairy"
       ],
-
       correct: 0
-
     },
 
     {
-
       question:
-        "Which pair is correct?",
-
+        "Match the food with its category.",
+      left: "Curd",
       answers: [
-
-        "Italy — Pizza",
-
-        "Japan — Biryani",
-
-        "India — Sushi",
-
-        "Mexico — Idli"
-
+        "Grain",
+        "Dairy",
+        "Fruit",
+        "Spice"
       ],
-
-      correct: 0
-
+      correct: 1
     },
 
     {
-
       question:
-        "Which pair is correct?",
-
+        "Match the food with its category.",
+      left: "Almond",
       answers: [
-
-        "Mexico — Tacos",
-
-        "Kerala — Sushi",
-
-        "Punjab — Pizza",
-
-        "Japan — Biryani"
-
+        "Fruit",
+        "Grain",
+        "Nut",
+        "Pulse"
       ],
-
-      correct: 0
-
+      correct: 2
     }
 
   ],
 
-
-  /* =======================================================
-     TIME CHALLENGE
-     ======================================================= */
 
   time: [
 
     {
-
       question:
-        "Which one is a spice?",
-
+        "Which nutrient is mainly used for building and repairing tissues?",
       answers: [
-
-        "Turmeric",
-
-        "Apple",
-
-        "Rice",
-
-        "Milk"
-
-      ],
-
-      correct: 0
-
-    },
-
-    {
-
-      question:
-        "Which one is a fruit?",
-
-      answers: [
-
-        "Mango",
-
+        "Protein",
         "Salt",
-
-        "Rice",
-
-        "Lentil"
-
+        "Water",
+        "Sugar"
       ],
-
       correct: 0
-
     },
 
     {
-
       question:
-        "Which one is a grain?",
-
+        "Which food is commonly a source of vitamin C?",
       answers: [
-
-        "Rice",
-
-        "Apple",
-
-        "Milk",
-
-        "Salt"
-
-      ],
-
-      correct: 0
-
-    },
-
-    {
-
-      question:
-        "Which one is a legume?",
-
-      answers: [
-
-        "Lentil",
-
-        "Mango",
-
-        "Sugar",
-
-        "Oil"
-
-      ],
-
-      correct: 0
-
-    },
-
-    {
-
-      question:
-        "Which one is a dairy food?",
-
-      answers: [
-
-        "Milk",
-
-        "Rice",
-
-        "Apple",
-
-        "Chilli"
-
-      ],
-
-      correct: 0
-
-    },
-
-    {
-
-      question:
-        "Which one is commonly used as a cooking oil?",
-
-      answers: [
-
-        "Sunflower oil",
-
-        "Rice",
-
-        "Apple",
-
-        "Salt"
-
-      ],
-
-      correct: 0
-
-    },
-
-    {
-
-      question:
-        "Which one is naturally sweet?",
-
-      answers: [
-
-        "Mango",
-
-        "Salt",
-
-        "Turmeric",
-
-        "Black pepper"
-
-      ],
-
-      correct: 0
-
-    },
-
-    {
-
-      question:
-        "Which one is commonly used in Indian curries?",
-
-      answers: [
-
-        "Turmeric",
-
-        "Apple",
-
-        "Pear",
-
-        "Yoghurt candy"
-
-      ],
-
-      correct: 0
-
-    },
-
-    {
-
-      question:
-        "Which one is a citrus fruit?",
-
-      answers: [
-
         "Orange",
-
-        "Rice",
-
-        "Lentil",
-
-        "Potato"
-
+        "Butter",
+        "Salt",
+        "Rice"
       ],
-
       correct: 0
-
     },
 
     {
-
       question:
-        "Which one is commonly made from wheat flour?",
-
+        "Which is a whole grain?",
       answers: [
-
-        "Roti",
-
-        "Sushi",
-
-        "Idli",
-
-        "Coconut water"
-
+        "Brown rice",
+        "Sugar",
+        "Salt",
+        "Oil"
       ],
-
       correct: 0
+    },
 
+    {
+      question:
+        "Which food is a source of plant protein?",
+      answers: [
+        "Lentils",
+        "Sugar",
+        "Salt",
+        "Water"
+      ],
+      correct: 0
+    },
+
+    {
+      question:
+        "Which nutrient provides the most energy per gram?",
+      answers: [
+        "Fat",
+        "Water",
+        "Vitamin C",
+        "Minerals"
+      ],
+      correct: 0
+    },
+
+    {
+      question:
+        "What should you read to know what is inside a packaged food?",
+      answers: [
+        "Ingredient list",
+        "Logo only",
+        "Advertisement only",
+        "Package colour"
+      ],
+      correct: 0
+    },
+
+    {
+      question:
+        "Which is a source of dietary fibre?",
+      answers: [
+        "Vegetables",
+        "Salt",
+        "Oil",
+        "Sugar"
+      ],
+      correct: 0
+    },
+
+    {
+      question:
+        "Which mineral is important for bones and teeth?",
+      answers: [
+        "Calcium",
+        "Sugar",
+        "Caffeine",
+        "Sodium"
+      ],
+      correct: 0
+    },
+
+    {
+      question:
+        "What can 'per 100 g' help you do?",
+      answers: [
+        "Compare foods",
+        "Find a shop",
+        "Find the manufacturer",
+        "Know the package size only"
+      ],
+      correct: 0
+    },
+
+    {
+      question:
+        "Which food is fermented?",
+      answers: [
+        "Curd",
+        "Salt",
+        "Sugar",
+        "Oil"
+      ],
+      correct: 0
     }
 
   ],
 
 
-  /* =======================================================
-     DAILY CHALLENGE
-     ======================================================= */
-
   daily: [
 
     {
-
       question:
-        "Which country is traditionally associated with sushi?",
-
+        "NIJOK Daily Challenge: What is the first thing you should do when you want to understand a packaged food?",
       answers: [
-
-        "Japan",
-
-        "India",
-
-        "Mexico",
-
-        "Italy"
-
+        "Read the label",
+        "Choose the brightest package",
+        "Follow an advertisement",
+        "Ignore the ingredients"
       ],
-
       correct: 0
-
     }
 
   ]
@@ -1318,36 +772,53 @@ const questions = {
 };
 
 
-/* =========================================================
-   6. GAME STATE
-   ========================================================= */
+/* ---------------------------------------------------------
+   6. GAME INFORMATION
+--------------------------------------------------------- */
 
-const gameState = {
+const GAME_INFO = {
 
-  active: false,
+  guess: {
+    label: "GUESS THE FOOD",
+    title: "Guess the Food",
+    description:
+      "Read the clues and identify the food."
+  },
 
-  mode: "",
+  quiz: {
+    label: "FOOD QUIZ",
+    title: "Food Quiz",
+    description:
+      "Test what you know about food and labels."
+  },
 
-  questions: [],
+  match: {
+    label: "MATCH THE PAIR",
+    title: "Match the Pair",
+    description:
+      "Connect the food with the right answer."
+  },
 
-  questionIndex: 0,
+  time: {
+    label: "TIME CHALLENGE",
+    title: "Time Challenge",
+    description:
+      "Answer before the clock runs out."
+  },
 
-  score: 0,
-
-  correct: 0,
-
-  answered: false,
-
-  timer: null,
-
-  timeLeft: 0
+  daily: {
+    label: "DAILY CHALLENGE",
+    title: "Today's Challenge",
+    description:
+      "One new food question every day."
+  }
 
 };
 
 
-/* =========================================================
-   7. HTML ELEMENTS
-   ========================================================= */
+/* ---------------------------------------------------------
+   7. DOM ELEMENTS
+--------------------------------------------------------- */
 
 const gameOverlay =
   document.getElementById(
@@ -1390,1363 +861,9 @@ const nextQuestion =
   );
 
 
-/* =========================================================
-   8. UTILITY
-   ========================================================= */
-
-function shuffle(array) {
-
-  const copy =
-    [...array];
-
-  for (
-    let i = copy.length - 1;
-    i > 0;
-    i--
-  ) {
-
-    const j =
-      Math.floor(
-        Math.random() *
-        (i + 1)
-      );
-
-    [
-      copy[i],
-      copy[j]
-    ] = [
-      copy[j],
-      copy[i]
-    ];
-
-  }
-
-  return copy;
-
-}
-
-
-/* =========================================================
-   9. GET DAILY LIMIT
-   ========================================================= */
-
-function getLimit(mode) {
-
-  return (
-    NIJOK.limits[mode] ||
-    1
-  );
-
-}
-
-
-function playedToday(mode) {
-
-  resetDailyProgress();
-
-  return (
-    player.today[mode] ||
-    0
-  );
-
-}
-
-
-/* =========================================================
-   10. PREPARE QUESTIONS
-   ========================================================= */
-
-function prepareQuestions(mode) {
-
-  const bank =
-    questions[mode] || [];
-
-  if (!bank.length) {
-
-    return [];
-
-  }
-
-  const shuffled =
-    shuffle(bank);
-
-  const limit =
-    getLimit(mode);
-
-  const amount =
-    Math.min(
-      limit,
-      shuffled.length
-    );
-
-  return shuffled
-    .slice(0, amount)
-    .map(question => ({
-      ...question,
-      answers: [
-        ...question.answers
-      ]
-    }));
-
-}
-
-
-/* =========================================================
-   11. OPEN GAME
-   ========================================================= */
-
-function openGame(mode) {
-
-  resetDailyProgress();
-
-
-  if (!gameInfo[mode]) {
-
-    console.error(
-      "NIJOK: Unknown game mode:",
-      mode
-    );
-
-    return;
-
-  }
-
-
-  if (
-    playedToday(mode) >=
-    getLimit(mode)
-  ) {
-
-    showLimit(mode);
-
-    return;
-
-  }
-
-
-  const prepared =
-    prepareQuestions(mode);
-
-
-  if (!prepared.length) {
-
-    console.error(
-      "NIJOK: No questions available for",
-      mode
-    );
-
-    return;
-
-  }
-
-
-  clearGameTimer();
-
-
-  gameState.active =
-    true;
-
-  gameState.mode =
-    mode;
-
-  gameState.questions =
-    prepared;
-
-  gameState.questionIndex =
-    0;
-
-  gameState.score =
-    0;
-
-  gameState.correct =
-    0;
-
-  gameState.answered =
-    false;
-
-
-  const info =
-    gameInfo[mode];
-
-
-  if (gameModeLabel) {
-
-    gameModeLabel.textContent =
-      info.label;
-
-  }
-
-
-  if (gameTitle) {
-
-    gameTitle.textContent =
-      info.title;
-
-  }
-
-
-  if (gameDescription) {
-
-    gameDescription.textContent =
-      info.description;
-
-  }
-
-
-  if (gameOverlay) {
-
-    gameOverlay.classList.add(
-      "active"
-    );
-
-    gameOverlay.setAttribute(
-      "aria-hidden",
-      "false"
-    );
-
-  }
-
-
-  document.body.style.overflow =
-    "hidden";
-
-
-  showQuestion();
-
-}
-
-
-/* =========================================================
-   12. SHOW QUESTION
-   ========================================================= */
-
-function showQuestion() {
-
-  if (!gameState.active) {
-
-    return;
-
-  }
-
-
-  const list =
-    gameState.questions;
-
-
-  if (
-    !list ||
-    !list.length
-  ) {
-
-    finishGame();
-
-    return;
-
-  }
-
-
-  if (
-    gameState.questionIndex >=
-    list.length
-  ) {
-
-    finishGame();
-
-    return;
-
-  }
-
-
-  clearGameTimer();
-
-
-  const current =
-    list[
-      gameState.questionIndex
-    ];
-
-
-  gameState.answered =
-    false;
-
-
-  if (gameQuestion) {
-
-    gameQuestion.innerHTML = `
-
-      <div class="question-number">
-
-        Question
-        ${gameState.questionIndex + 1}
-        / ${list.length}
-
-      </div>
-
-      <h3>
-        ${escapeHTML(
-          current.question
-        )}
-      </h3>
-
-    `;
-
-  }
-
-
-  if (gameAnswers) {
-
-    gameAnswers.innerHTML =
-      "";
-
-  }
-
-
-  current.answers.forEach(
-    (answer, index) => {
-
-      const button =
-        document.createElement(
-          "button"
-        );
-
-
-      button.type =
-        "button";
-
-      button.className =
-        "answer-button";
-
-      button.textContent =
-        answer;
-
-
-      button.addEventListener(
-        "click",
-        () => {
-
-          answerQuestion(
-            button,
-            index,
-            current.correct
-          );
-
-        }
-      );
-
-
-      gameAnswers.appendChild(
-        button
-      );
-
-    }
-  );
-
-
-  if (nextQuestion) {
-
-    nextQuestion.style.display =
-      "none";
-
-  }
-
-
-  if (
-    gameState.mode ===
-    "time"
-  ) {
-
-    startTimeChallenge();
-
-  }
-
-}
-
-
-/* =========================================================
-   13. ANSWER QUESTION
-   ========================================================= */
-
-function answerQuestion(
-  selectedButton,
-  selectedIndex,
-  correctIndex
-) {
-
-  if (
-    !gameState.active ||
-    gameState.answered
-  ) {
-
-    return;
-
-  }
-
-
-  gameState.answered =
-    true;
-
-
-  clearGameTimer();
-
-
-  const buttons =
-    gameAnswers
-      ? gameAnswers.querySelectorAll(
-          ".answer-button"
-        )
-      : [];
-
-
-  buttons.forEach(
-    (button, index) => {
-
-      button.disabled =
-        true;
-
-
-      if (
-        index ===
-        correctIndex
-      ) {
-
-        button.classList.add(
-          "correct"
-        );
-
-      }
-
-    }
-  );
-
-
-  const isCorrect =
-    selectedIndex ===
-    correctIndex;
-
-
-  if (isCorrect) {
-
-    selectedButton.classList.add(
-      "correct"
-    );
-
-
-    gameState.correct++;
-
-
-    const points =
-      NIJOK.points[
-        gameState.mode
-      ] || 10;
-
-
-    gameState.score +=
-      points;
-
-  } else {
-
-    selectedButton.classList.add(
-      "wrong"
-    );
-
-  }
-
-
-  if (nextQuestion) {
-
-    nextQuestion.style.display =
-      "inline-flex";
-
-    nextQuestion.textContent =
-      gameState.questionIndex ===
-      gameState.questions.length - 1
-
-        ? "See Results →"
-
-        : "Next Question →";
-
-  }
-
-}
-
-
-/* =========================================================
-   14. NEXT QUESTION
-   ========================================================= */
-
-function goToNextQuestion() {
-
-  if (
-    !gameState.active ||
-    !gameState.answered
-  ) {
-
-    return;
-
-  }
-
-
-  gameState.questionIndex++;
-
-
-  if (
-    gameState.questionIndex >=
-    gameState.questions.length
-  ) {
-
-    finishGame();
-
-    return;
-
-  }
-
-
-  showQuestion();
-
-}
-
-
-if (nextQuestion) {
-
-  nextQuestion.addEventListener(
-    "click",
-    goToNextQuestion
-  );
-
-}
-
-
-/* =========================================================
-   15. FINISH GAME
-   ========================================================= */
-
-function finishGame() {
-
-  if (!gameState.active) {
-
-    return;
-
-  }
-
-
-  clearGameTimer();
-
-
-  const mode =
-    gameState.mode;
-
-
-  const pointsEarned =
-    gameState.score;
-
-
-  player.totalScore +=
-    pointsEarned;
-
-
-  player.gamesPlayed++;
-
-
-  player.correctAnswers +=
-    gameState.correct;
-
-
-  if (
-    player.today[mode] !==
-    undefined
-  ) {
-
-    player.today[mode]++;
-
-  }
-
-
-  updateLevel();
-
-
-  savePlayer();
-
-
-  gameState.active =
-    false;
-
-
-  showResults(
-    mode,
-    pointsEarned,
-    gameState.correct,
-    gameState.questions.length
-  );
-
-
-  updateDashboard();
-
-}
-
-
-/* =========================================================
-   16. RESULT SCREEN
-   ========================================================= */
-
-function showResults(
-  mode,
-  score,
-  correct,
-  total
-) {
-
-  const info =
-    gameInfo[mode];
-
-
-  if (gameModeLabel) {
-
-    gameModeLabel.textContent =
-      "CHALLENGE COMPLETE";
-
-  }
-
-
-  if (gameTitle) {
-
-    gameTitle.textContent =
-      "Well Played, Food Explorer!";
-
-  }
-
-
-  if (gameDescription) {
-
-    gameDescription.textContent =
-      `${info.title} completed.`;
-
-  }
-
-
-  if (gameQuestion) {
-
-    gameQuestion.innerHTML = `
-
-      <div class="limit-message">
-
-        <strong>
-          🌿 Your Result
-        </strong>
-
-        <br><br>
-
-        Score:
-        <strong>${score}</strong>
-
-        points
-
-        <br>
-
-        Correct:
-        <strong>${correct}</strong>
-        / ${total}
-
-        <br><br>
-
-        Keep exploring.
-        Every question adds to your
-        Food Journey.
-
-      </div>
-
-    `;
-
-  }
-
-
-  if (gameAnswers) {
-
-    gameAnswers.innerHTML =
-      "";
-
-  }
-
-
-  if (nextQuestion) {
-
-    nextQuestion.style.display =
-      "inline-flex";
-
-    nextQuestion.textContent =
-      "Close Challenge →";
-
-    nextQuestion.onclick =
-      closeGameAfterResult;
-
-  }
-
-}
-
-
-/* =========================================================
-   17. RESULT CLOSE
-   ========================================================= */
-
-function closeGameAfterResult() {
-
-  if (nextQuestion) {
-
-    nextQuestion.onclick =
-      null;
-
-  }
-
-  closeGame();
-
-}
-
-
-/* =========================================================
-   18. DAILY LIMIT MESSAGE
-   ========================================================= */
-
-function showLimit(mode) {
-
-  const info =
-    gameInfo[mode];
-
-
-  if (gameModeLabel) {
-
-    gameModeLabel.textContent =
-      info.label;
-
-  }
-
-
-  if (gameTitle) {
-
-    gameTitle.textContent =
-      "Daily Limit Reached";
-
-  }
-
-
-  if (gameDescription) {
-
-    gameDescription.textContent =
-      `You completed today's ${info.title} limit.`;
-
-  }
-
-
-  if (gameQuestion) {
-
-    gameQuestion.innerHTML = `
-
-      <div class="limit-message">
-
-        🌿 Great job, Food Explorer!
-
-        <br><br>
-
-        Today's challenge is complete.
-
-        <br><br>
-
-        Come back tomorrow
-        for a fresh challenge.
-
-      </div>
-
-    `;
-
-  }
-
-
-  if (gameAnswers) {
-
-    gameAnswers.innerHTML =
-      "";
-
-  }
-
-
-  if (nextQuestion) {
-
-    nextQuestion.style.display =
-      "inline-flex";
-
-    nextQuestion.textContent =
-      "Close →";
-
-    nextQuestion.onclick =
-      closeGameAfterResult;
-
-  }
-
-
-  if (gameOverlay) {
-
-    gameOverlay.classList.add(
-      "active"
-    );
-
-    gameOverlay.setAttribute(
-      "aria-hidden",
-      "false"
-    );
-
-  }
-
-
-  document.body.style.overflow =
-    "hidden";
-
-}
-
-
-/* =========================================================
-   19. TIME CHALLENGE
-   ========================================================= */
-
-function startTimeChallenge() {
-
-  clearGameTimer();
-
-
-  gameState.timeLeft =
-    NIJOK.timeLimit;
-
-
-  updateTimeDisplay();
-
-
-  gameState.timer =
-    setInterval(
-      () => {
-
-        gameState.timeLeft--;
-
-
-        updateTimeDisplay();
-
-
-        if (
-          gameState.timeLeft <=
-          0
-        ) {
-
-          clearGameTimer();
-
-          timeExpired();
-
-        }
-
-      },
-      1000
-    );
-
-}
-
-
-function updateTimeDisplay() {
-
-  if (!gameQuestion) {
-
-    return;
-
-  }
-
-
-  const existing =
-    gameQuestion.querySelector(
-      ".question-number"
-    );
-
-
-  if (!existing) {
-
-    return;
-
-  }
-
-
-  let timer =
-    gameQuestion.querySelector(
-      ".question-timer"
-    );
-
-
-  if (!timer) {
-
-    timer =
-      document.createElement(
-        "div"
-      );
-
-    timer.className =
-      "question-timer";
-
-    gameQuestion.prepend(
-      timer
-    );
-
-  }
-
-
-  timer.textContent =
-    `⏱️ ${gameState.timeLeft}s`;
-
-}
-
-
-function timeExpired() {
-
-  if (
-    !gameState.active ||
-    gameState.answered
-  ) {
-
-    return;
-
-  }
-
-
-  gameState.answered =
-    true;
-
-
-  const buttons =
-    gameAnswers
-      ? gameAnswers.querySelectorAll(
-          ".answer-button"
-        )
-      : [];
-
-
-  buttons.forEach(
-    (button, index) => {
-
-      button.disabled =
-        true;
-
-
-      const current =
-        gameState.questions[
-          gameState.questionIndex
-        ];
-
-
-      if (
-        current &&
-        index ===
-        current.correct
-      ) {
-
-        button.classList.add(
-          "correct"
-        );
-
-      }
-
-    }
-  );
-
-
-  if (gameQuestion) {
-
-    const notice =
-      document.createElement(
-        "div"
-      );
-
-    notice.className =
-      "limit-message";
-
-    notice.innerHTML =
-      "⏱️ Time's up!";
-
-    gameQuestion.appendChild(
-      notice
-    );
-
-  }
-
-
-  if (nextQuestion) {
-
-    nextQuestion.style.display =
-      "inline-flex";
-
-    nextQuestion.textContent =
-      gameState.questionIndex ===
-      gameState.questions.length - 1
-
-        ? "See Results →"
-
-        : "Next Question →";
-
-  }
-
-}
-
-
-/* =========================================================
-   20. CLEAR TIMER
-   ========================================================= */
-
-function clearGameTimer() {
-
-  if (
-    gameState.timer
-  ) {
-
-    clearInterval(
-      gameState.timer
-    );
-
-    gameState.timer =
-      null;
-
-  }
-
-}
-
-
-/* =========================================================
-   21. CLOSE GAME
-   ========================================================= */
-
-function closeGame() {
-
-  clearGameTimer();
-
-
-  if (gameOverlay) {
-
-    gameOverlay.classList.remove(
-      "active"
-    );
-
-    gameOverlay.setAttribute(
-      "aria-hidden",
-      "true"
-    );
-
-  }
-
-
-  document.body.style.overflow =
-    "";
-
-
-  gameState.active =
-    false;
-
-
-  gameState.mode =
-    "";
-
-  gameState.questions =
-    [];
-
-  gameState.questionIndex =
-    0;
-
-  gameState.score =
-    0;
-
-  gameState.correct =
-    0;
-
-  gameState.answered =
-    false;
-
-
-  if (nextQuestion) {
-
-    nextQuestion.onclick =
-      goToNextQuestion;
-
-  }
-
-
-  updateDashboard();
-
-}
-
-
-if (closeGameButton) {
-
-  closeGameButton.addEventListener(
-    "click",
-    closeGame
-  );
-
-}
-
-
-if (gameOverlay) {
-
-  gameOverlay.addEventListener(
-    "click",
-    event => {
-
-      if (
-        event.target ===
-        gameOverlay
-      ) {
-
-        closeGame();
-
-      }
-
-    }
-  );
-
-}
-
-
-/* =========================================================
-   22. CHALLENGE BUTTONS
-   ========================================================= */
-
-document
-  .querySelectorAll(
-    "[data-game]"
-  )
-  .forEach(
-    button => {
-
-      button.addEventListener(
-        "click",
-        event => {
-
-          const mode =
-            event.currentTarget
-              .dataset
-              .game;
-
-          openGame(mode);
-
-        }
-      );
-
-    }
-  );
-
-
-/* =========================================================
-   23. LEVEL SYSTEM
-   ========================================================= */
-
-function updateLevel() {
-
-  player.level =
-    Math.max(
-
-      1,
-
-      Math.floor(
-        player.totalScore / 100
-      ) + 1
-
-    );
-
-}
-
-
-/* =========================================================
-   24. DASHBOARD
-   ========================================================= */
-
-function updateDashboard() {
-
-  const score =
-    document.getElementById(
-      "totalScore"
-    );
-
-  const games =
-    document.getElementById(
-      "gamesPlayed"
-    );
-
-  const correct =
-    document.getElementById(
-      "correctAnswers"
-    );
-
-  const level =
-    document.getElementById(
-      "userLevel"
-    );
-
-  const name =
-    document.getElementById(
-      "profileName"
-    );
-
-  const badges =
-    document.getElementById(
-      "badgesEarned"
-    );
-
-
-  if (score) {
-
-    score.textContent =
-      player.totalScore;
-
-  }
-
-
-  if (games) {
-
-    games.textContent =
-      player.gamesPlayed;
-
-  }
-
-
-  if (correct) {
-
-    correct.textContent =
-      player.correctAnswers;
-
-  }
-
-
-  if (level) {
-
-    level.textContent =
-      player.level;
-
-  }
-
-
-  if (name) {
-
-    name.textContent =
-      player.name;
-
-  }
-
-
-  if (badges) {
-
-    badges.textContent =
-      calculateBadges();
-
-  }
-
-}
-
-
-/* =========================================================
-   25. BADGES FOUNDATION
-   ========================================================= */
-
-function calculateBadges() {
-
-  let count = 0;
-
-
-  if (
-    player.totalScore >=
-    50
-  ) {
-
-    count++;
-
-  }
-
-
-  if (
-    player.totalScore >=
-    100
-  ) {
-
-    count++;
-
-  }
-
-
-  if (
-    player.totalScore >=
-    250
-  ) {
-
-    count++;
-
-  }
-
-
-  if (
-    player.totalScore >=
-    500
-  ) {
-
-    count++;
-
-  }
-
-
-  if (
-    player.totalScore >=
-    1000
-  ) {
-
-    count++;
-
-  }
-
-
-  return count;
-
-}
-
-
-/* =========================================================
-   26. HTML ESCAPE
-   ========================================================= */
-
-function escapeHTML(value) {
-
-  const div =
-    document.createElement(
-      "div"
-    );
-
-  div.textContent =
-    String(value);
-
-  return div.innerHTML;
-
-}
-
-
-/* =========================================================
-   27. INITIALIZATION
-   ========================================================= */
-
-resetDailyProgress();
-
-updateLevel();
-
-updateDashboard();
-
-
-console.log(
-  "NIJOK Game Engine Part 3A loaded successfully 🌿"
-);
-/* =========================================================
-   NIJOK 3.0 — PART 3B
-   PROFILE • LOGIN • DASHBOARD • DAILY • COMMUNITY
-   ---------------------------------------------------------
-   This part continues directly after Part 3A.
-========================================================= */
-
-
-/* =========================================================
-   28. PROFILE / LOGIN ELEMENTS
-========================================================= */
+/* ---------------------------------------------------------
+   8. LOGIN DOM
+--------------------------------------------------------- */
 
 const loginModal =
   document.getElementById(
@@ -2776,15 +893,1314 @@ const loginButton =
   );
 
 
-/* =========================================================
-   29. OPEN LOGIN MODAL
-========================================================= */
+/* ---------------------------------------------------------
+   9. GAME STATE
+--------------------------------------------------------- */
 
-function openLoginModal() {
+const gameState = {
+
+  active: false,
+
+  mode: "",
+
+  questions: [],
+
+  current: 0,
+
+  score: 0,
+
+  correct: 0,
+
+  answered: false,
+
+  timer: null,
+
+  timeLeft: 0,
+
+  gameCompleted: false
+
+};
+
+
+/* ---------------------------------------------------------
+   10. UTILITY
+--------------------------------------------------------- */
+
+function shuffle(array) {
+
+  const copy =
+    [...array];
+
+
+  for (
+    let i =
+      copy.length - 1;
+    i > 0;
+    i--
+  ) {
+
+    const j =
+      Math.floor(
+        Math.random() *
+        (i + 1)
+      );
+
+
+    [
+      copy[i],
+      copy[j]
+    ] = [
+      copy[j],
+      copy[i]
+    ];
+
+  }
+
+
+  return copy;
+
+}
+
+
+function clearTimer() {
+
+  if (
+    gameState.timer
+  ) {
+
+    clearInterval(
+      gameState.timer
+    );
+
+    gameState.timer =
+      null;
+
+  }
+
+}
+
+
+/* ---------------------------------------------------------
+   11. LIMIT SYSTEM
+--------------------------------------------------------- */
+
+function getPlayedToday(
+  mode
+) {
+
+  checkDailyReset();
+
+  return (
+    player.today[mode] ||
+    0
+  );
+
+}
+
+
+function canPlay(
+  mode
+) {
+
+  return (
+    getPlayedToday(mode) <
+    NIJOK.limits[mode]
+  );
+
+}
+
+
+function increaseDailyCount(
+  mode
+) {
+
+  checkDailyReset();
+
+  player.today[mode] =
+    (
+      player.today[mode] ||
+      0
+    ) + 1;
+
+}
+
+
+/* ---------------------------------------------------------
+   12. OPEN GAME
+--------------------------------------------------------- */
+
+function openGame(
+  mode
+) {
+
+  checkDailyReset();
+
+
+  if (
+    !GAME_INFO[mode]
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    !canPlay(mode)
+  ) {
+
+    showLimitScreen(
+      mode
+    );
+
+    return;
+
+  }
+
+
+  const bank =
+    QUESTION_BANK[mode];
+
+
+  if (
+    !bank ||
+    !bank.length
+  ) {
+
+    return;
+
+  }
+
+
+  const limit =
+    Math.min(
+      NIJOK.limits[mode],
+      bank.length
+    );
+
+
+  gameState.active =
+    true;
+
+  gameState.mode =
+    mode;
+
+  gameState.questions =
+    shuffle(bank)
+      .slice(
+        0,
+        limit
+      );
+
+  gameState.current =
+    0;
+
+  gameState.score =
+    0;
+
+  gameState.correct =
+    0;
+
+  gameState.answered =
+    false;
+
+  gameState.gameCompleted =
+    false;
+
+
+  showGameOverlay();
+
+  showQuestion();
+
+}
+
+
+/* ---------------------------------------------------------
+   13. SHOW GAME OVERLAY
+--------------------------------------------------------- */
+
+function showGameOverlay() {
+
+  if (!gameOverlay) {
+
+    return;
+
+  }
+
+
+  gameOverlay.classList.add(
+    "active"
+  );
+
+
+  gameOverlay.setAttribute(
+    "aria-hidden",
+    "false"
+  );
+
+
+  /*
+    These inline properties make the overlay
+    work even if the CSS active-state is missing.
+  */
+
+  gameOverlay.style.display =
+    "flex";
+
+
+  document.body.style.overflow =
+    "hidden";
+
+}
+
+
+/* ---------------------------------------------------------
+   14. CLOSE GAME
+--------------------------------------------------------- */
+
+function closeGame() {
+
+  clearTimer();
+
+
+  gameState.active =
+    false;
+
+  gameState.gameCompleted =
+    false;
+
+
+  if (gameOverlay) {
+
+    gameOverlay.classList.remove(
+      "active"
+    );
+
+    gameOverlay.setAttribute(
+      "aria-hidden",
+      "true"
+    );
+
+    gameOverlay.style.display =
+      "";
+
+  }
+
+
+  document.body.style.overflow =
+    "";
+
+}
+
+
+/* ---------------------------------------------------------
+   15. SHOW QUESTION
+--------------------------------------------------------- */
+
+function showQuestion() {
+
+  clearTimer();
+
+
+  if (
+    !gameState.active
+  ) {
+
+    return;
+
+  }
+
+
+  const question =
+    gameState.questions[
+      gameState.current
+    ];
+
+
+  if (!question) {
+
+    finishGame();
+
+    return;
+
+  }
+
+
+  gameState.answered =
+    false;
+
+
+  const info =
+    GAME_INFO[
+      gameState.mode
+    ];
+
+
+  if (gameModeLabel) {
+
+    gameModeLabel.textContent =
+      info.label;
+
+  }
+
+
+  if (gameTitle) {
+
+    gameTitle.textContent =
+      info.title;
+
+  }
+
+
+  if (gameDescription) {
+
+    gameDescription.textContent =
+      info.description;
+
+  }
+
+
+  if (nextQuestion) {
+
+    nextQuestion.style.display =
+      "none";
+
+  }
+
+
+  const total =
+    gameState.questions.length;
+
+
+  const number =
+    gameState.current + 1;
+
+
+  let questionHTML = `
+
+    <div class="nijok-question-count">
+
+      Question ${number} of ${total}
+
+    </div>
+
+    <div class="nijok-question-text">
+
+      ${escapeHTML(
+        question.question
+      )}
+
+    </div>
+
+  `;
+
+
+  if (
+    gameState.mode ===
+    "match"
+  ) {
+
+    questionHTML += `
+
+      <div class="nijok-match-food">
+
+        ${escapeHTML(
+          question.left
+        )}
+
+      </div>
+
+    `;
+
+  }
+
+
+  if (gameQuestion) {
+
+    gameQuestion.innerHTML =
+      questionHTML;
+
+  }
+
+
+  if (gameAnswers) {
+
+    gameAnswers.innerHTML =
+      "";
+
+  }
+
+
+  question.answers
+    .forEach(
+      (
+        answer,
+        index
+      ) => {
+
+        const button =
+          document.createElement(
+            "button"
+          );
+
+
+        button.type =
+          "button";
+
+
+        button.className =
+          "answer-button";
+
+
+        button.textContent =
+          answer;
+
+
+        button.dataset.index =
+          index;
+
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            answerQuestion(
+              index
+            );
+
+          }
+        );
+
+
+        if (gameAnswers) {
+
+          gameAnswers.appendChild(
+            button
+          );
+
+        }
+
+      }
+    );
+
+
+  if (
+    gameState.mode ===
+    "time"
+  ) {
+
+    startTimer();
+
+  }
+
+}
+
+
+/* ---------------------------------------------------------
+   16. ANSWER QUESTION
+--------------------------------------------------------- */
+
+function answerQuestion(
+  selectedIndex
+) {
+
+  if (
+    gameState.answered ||
+    !gameState.active
+  ) {
+
+    return;
+
+  }
+
+
+  const question =
+    gameState.questions[
+      gameState.current
+    ];
+
+
+  if (!question) {
+
+    return;
+
+  }
+
+
+  gameState.answered =
+    true;
+
+
+  clearTimer();
+
+
+  const buttons =
+    gameAnswers
+      ? gameAnswers.querySelectorAll(
+          ".answer-button"
+        )
+      : [];
+
+
+  buttons.forEach(
+    button => {
+
+      button.disabled =
+        true;
+
+
+      const index =
+        Number(
+          button.dataset.index
+        );
+
+
+      if (
+        index ===
+        question.correct
+      ) {
+
+        button.classList.add(
+          "correct"
+        );
+
+      }
+
+
+      if (
+        index ===
+        selectedIndex &&
+        index !==
+        question.correct
+      ) {
+
+        button.classList.add(
+          "wrong"
+        );
+
+      }
+
+    }
+  );
+
+
+  const isCorrect =
+    selectedIndex ===
+    question.correct;
+
+
+  if (isCorrect) {
+
+    gameState.correct++;
+
+    gameState.score +=
+      NIJOK.points[
+        gameState.mode
+      ];
+
+  }
+
+
+  showAnswerFeedback(
+    isCorrect
+  );
+
+
+  if (nextQuestion) {
+
+    nextQuestion.style.display =
+      "inline-flex";
+
+    nextQuestion.textContent =
+      gameState.current <
+      gameState.questions.length - 1
+        ? "Next Question →"
+        : "See Result →";
+
+  }
+
+}
+
+
+/* ---------------------------------------------------------
+   17. ANSWER FEEDBACK
+--------------------------------------------------------- */
+
+function showAnswerFeedback(
+  correct
+) {
+
+  if (!gameQuestion) {
+
+    return;
+
+  }
+
+
+  const feedback =
+    document.createElement(
+      "div"
+    );
+
+
+  feedback.className =
+    correct
+      ? "nijok-feedback correct"
+      : "nijok-feedback wrong";
+
+
+  feedback.textContent =
+    correct
+      ? "✓ Correct!"
+      : "✕ Not quite — the highlighted answer is correct.";
+
+
+  gameQuestion.appendChild(
+    feedback
+  );
+
+}
+
+
+/* ---------------------------------------------------------
+   18. NEXT QUESTION
+--------------------------------------------------------- */
+
+function goToNextQuestion() {
+
+  if (
+    !gameState.active
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    !gameState.answered
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    gameState.current <
+    gameState.questions.length - 1
+  ) {
+
+    gameState.current++;
+
+    showQuestion();
+
+  } else {
+
+    finishGame();
+
+  }
+
+}
+
+
+/* ---------------------------------------------------------
+   19. FINISH GAME
+--------------------------------------------------------- */
+
+function finishGame() {
+
+  clearTimer();
+
+
+  if (
+    gameState.gameCompleted
+  ) {
+
+    return;
+
+  }
+
+
+  gameState.gameCompleted =
+    true;
+
+
+  increaseDailyCount(
+    gameState.mode
+  );
+
+
+  player.totalScore +=
+    gameState.score;
+
+
+  player.correctAnswers +=
+    gameState.correct;
+
+
+  player.gamesPlayed++;
+
+
+  updateLevel();
+
+
+  updateStreak();
+
+
+  savePlayer();
+
+  updateDashboard();
+
+
+  showResults();
+
+}
+
+
+/* ---------------------------------------------------------
+   20. RESULT SCREEN
+--------------------------------------------------------- */
+
+function showResults() {
+
+  const total =
+    gameState.questions.length;
+
+
+  const percentage =
+    total
+      ? Math.round(
+          (
+            gameState.correct /
+            total
+          ) * 100
+        )
+      : 0;
+
+
+  if (gameModeLabel) {
+
+    gameModeLabel.textContent =
+      "CHALLENGE COMPLETE";
+
+  }
+
+
+  if (gameTitle) {
+
+    gameTitle.textContent =
+      getResultTitle(
+        percentage
+      );
+
+  }
+
+
+  if (gameDescription) {
+
+    gameDescription.textContent =
+      "Your Food Journey is growing.";
+
+  }
+
+
+  if (gameQuestion) {
+
+    gameQuestion.innerHTML = `
+
+      <div class="nijok-result">
+
+        <div class="nijok-result-score">
+
+          ${gameState.score}
+
+        </div>
+
+        <div class="nijok-result-label">
+
+          POINTS
+
+        </div>
+
+        <div class="nijok-result-details">
+
+          ${gameState.correct}
+          / ${total}
+          correct
+
+          <br>
+
+          ${percentage}% accuracy
+
+        </div>
+
+      </div>
+
+    `;
+
+  }
+
+
+  if (gameAnswers) {
+
+    gameAnswers.innerHTML = `
+
+      <div class="nijok-result-extra">
+
+        🌿 Level ${player.level}
+
+        <br><br>
+
+        Total Score:
+        ${player.totalScore}
+
+        <br><br>
+
+        Current Streak:
+        ${player.streak} day${
+          player.streak === 1
+            ? ""
+            : "s"
+        }
+
+      </div>
+
+    `;
+
+  }
+
+
+  if (nextQuestion) {
+
+    nextQuestion.style.display =
+      "inline-flex";
+
+    nextQuestion.textContent =
+      "Play Again →";
+
+
+    nextQuestion.onclick =
+      () => {
+
+        const mode =
+          gameState.mode;
+
+        closeGame();
+
+        openGame(mode);
+
+      };
+
+  }
+
+}
+
+
+/* ---------------------------------------------------------
+   21. RESULT TITLE
+--------------------------------------------------------- */
+
+function getResultTitle(
+  percentage
+) {
+
+  if (
+    percentage === 100
+  ) {
+
+    return "Perfect! 🌟";
+
+  }
+
+
+  if (
+    percentage >= 80
+  ) {
+
+    return "Excellent! 🌿";
+
+  }
+
+
+  if (
+    percentage >= 60
+  ) {
+
+    return "Great Work! 👏";
+
+  }
+
+
+  if (
+    percentage >= 40
+  ) {
+
+    return "Keep Learning! 📚";
+
+  }
+
+
+  return "Every Question Counts! 🌱";
+
+}
+
+
+/* ---------------------------------------------------------
+   22. LIMIT SCREEN
+--------------------------------------------------------- */
+
+function showLimitScreen(
+  mode
+) {
+
+  const info =
+    GAME_INFO[mode];
+
+
+  if (gameModeLabel) {
+
+    gameModeLabel.textContent =
+      info.label;
+
+  }
+
+
+  if (gameTitle) {
+
+    gameTitle.textContent =
+      "Today's Limit Reached";
+
+  }
+
+
+  if (gameDescription) {
+
+    gameDescription.textContent =
+      "Come back tomorrow for a fresh challenge.";
+
+  }
+
+
+  if (gameQuestion) {
+
+    gameQuestion.innerHTML = `
+
+      <div class="nijok-limit">
+
+        🌙
+
+        <br><br>
+
+        You have completed today's
+
+        <strong>
+          ${info.title}
+        </strong>
+
+        challenge limit.
+
+        <br><br>
+
+        New challenges will be
+        available tomorrow.
+
+      </div>
+
+    `;
+
+  }
+
+
+  if (gameAnswers) {
+
+    gameAnswers.innerHTML =
+      "";
+
+  }
+
+
+  if (nextQuestion) {
+
+    nextQuestion.style.display =
+      "inline-flex";
+
+    nextQuestion.textContent =
+      "Close →";
+
+    nextQuestion.onclick =
+      closeGame;
+
+  }
+
+
+  showGameOverlay();
+
+}
+
+
+/* ---------------------------------------------------------
+   23. TIMER
+--------------------------------------------------------- */
+
+function startTimer() {
+
+  gameState.timeLeft =
+    NIJOK.timeLimit;
+
+
+  updateTimerDisplay();
+
+
+  gameState.timer =
+    setInterval(
+      () => {
+
+        gameState.timeLeft--;
+
+        updateTimerDisplay();
+
+
+        if (
+          gameState.timeLeft <=
+          0
+        ) {
+
+          clearTimer();
+
+          if (
+            !gameState.answered
+          ) {
+
+            answerQuestion(
+              -1
+            );
+
+          }
+
+        }
+
+      },
+      1000
+    );
+
+}
+
+
+function updateTimerDisplay() {
+
+  if (!gameQuestion) {
+
+    return;
+
+  }
+
+
+  let timer =
+    gameQuestion.querySelector(
+      ".nijok-timer"
+    );
+
+
+  if (!timer) {
+
+    timer =
+      document.createElement(
+        "div"
+      );
+
+    timer.className =
+      "nijok-timer";
+
+
+    gameQuestion.prepend(
+      timer
+    );
+
+  }
+
+
+  timer.textContent =
+    `⏱ ${gameState.timeLeft}s`;
+
+}
+
+
+/* ---------------------------------------------------------
+   24. STREAK
+--------------------------------------------------------- */
+
+function updateStreak() {
+
+  const lastDate =
+    localStorage.getItem(
+      "nijokLastCompletedDate"
+    );
+
+
+  const today =
+    getTodayKey();
+
+
+  if (
+    lastDate ===
+    today
+  ) {
+
+    return;
+
+  }
+
+
+  if (lastDate) {
+
+    const previous =
+      new Date(
+        lastDate
+      );
+
+    const current =
+      new Date(
+        today
+      );
+
+
+    const difference =
+      Math.round(
+        (
+          current -
+          previous
+        ) /
+        86400000
+      );
+
+
+    if (
+      difference ===
+      1
+    ) {
+
+      player.streak++;
+
+    } else {
+
+      player.streak =
+        1;
+
+    }
+
+  } else {
+
+    player.streak =
+      1;
+
+  }
+
+
+  localStorage.setItem(
+    "nijokLastCompletedDate",
+    today
+  );
+
+}
+
+
+/* ---------------------------------------------------------
+   25. LEVEL
+--------------------------------------------------------- */
+
+function updateLevel() {
+
+  player.level =
+    Math.floor(
+      player.totalScore /
+      100
+    ) + 1;
+
+}
+
+
+/* ---------------------------------------------------------
+   26. BADGES
+--------------------------------------------------------- */
+
+function getBadges() {
+
+  const badges = [];
+
+
+  if (
+    player.gamesPlayed >=
+    1
+  ) {
+
+    badges.push(
+      "First Step"
+    );
+
+  }
+
+
+  if (
+    player.correctAnswers >=
+    10
+  ) {
+
+    badges.push(
+      "Food Learner"
+    );
+
+  }
+
+
+  if (
+    player.totalScore >=
+    100
+  ) {
+
+    badges.push(
+      "Food Explorer"
+    );
+
+  }
+
+
+  if (
+    player.streak >=
+    7
+  ) {
+
+    badges.push(
+      "7 Day Streak"
+    );
+
+  }
+
+
+  if (
+    player.totalScore >=
+    500
+  ) {
+
+    badges.push(
+      "Knowledge Builder"
+    );
+
+  }
+
+
+  return badges;
+
+}
+
+
+/* ---------------------------------------------------------
+   27. LOGIN
+--------------------------------------------------------- */
+
+function openLogin() {
 
   if (!loginModal) {
-
-    loginUserFallback();
 
     return;
 
@@ -2795,10 +2211,15 @@ function openLoginModal() {
     "active"
   );
 
+
   loginModal.setAttribute(
     "aria-hidden",
     "false"
   );
+
+
+  loginModal.style.display =
+    "flex";
 
 
   document.body.style.overflow =
@@ -2808,9 +2229,7 @@ function openLoginModal() {
   if (loginName) {
 
     loginName.value =
-      player.loggedIn
-        ? player.name
-        : "";
+      player.name || "";
 
   }
 
@@ -2822,28 +2241,10 @@ function openLoginModal() {
 
   }
 
-
-  setTimeout(
-    () => {
-
-      if (loginName) {
-
-        loginName.focus();
-
-      }
-
-    },
-    100
-  );
-
 }
 
 
-/* =========================================================
-   30. CLOSE LOGIN MODAL
-========================================================= */
-
-function closeLoginModal() {
+function closeLogin() {
 
   if (!loginModal) {
 
@@ -2856,10 +2257,15 @@ function closeLoginModal() {
     "active"
   );
 
+
   loginModal.setAttribute(
     "aria-hidden",
     "true"
   );
+
+
+  loginModal.style.display =
+    "";
 
 
   document.body.style.overflow =
@@ -2868,47 +2274,13 @@ function closeLoginModal() {
 }
 
 
-if (closeLoginButton) {
-
-  closeLoginButton.addEventListener(
-    "click",
-    closeLoginModal
-  );
-
-}
-
-
-if (loginModal) {
-
-  loginModal.addEventListener(
-    "click",
-    event => {
-
-      if (
-        event.target ===
-        loginModal
-      ) {
-
-        closeLoginModal();
-
-      }
-
-    }
-  );
-
-}
-
-
-/* =========================================================
-   31. CREATE / LOGIN ACCOUNT
-========================================================= */
-
 function createAccount() {
 
   const name =
     loginName
       ? loginName.value.trim()
       : "";
+
 
   const email =
     loginEmail
@@ -2918,34 +2290,8 @@ function createAccount() {
 
   if (!name) {
 
-    if (loginName) {
-
-      loginName.focus();
-
-    }
-
-    showLoginMessage(
+    alert(
       "Please enter your name."
-    );
-
-    return;
-
-  }
-
-
-  if (
-    email &&
-    !isValidEmail(email)
-  ) {
-
-    if (loginEmail) {
-
-      loginEmail.focus();
-
-    }
-
-    showLoginMessage(
-      "Please enter a valid email address."
     );
 
     return;
@@ -2965,335 +2311,21 @@ function createAccount() {
 
   savePlayer();
 
-
   updateDashboard();
 
-  updateLoginUI();
-
-  closeLoginModal();
+  closeLogin();
 
 
-  showWelcomeMessage();
-
-}
-
-
-function isValidEmail(email) {
-
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    .test(email);
-
-}
-
-
-/* =========================================================
-   32. LOGIN MESSAGE
-========================================================= */
-
-function showLoginMessage(message) {
-
-  if (!loginModal) {
-
-    return;
-
-  }
-
-
-  let messageBox =
-    loginModal.querySelector(
-      ".login-message"
-    );
-
-
-  if (!messageBox) {
-
-    messageBox =
-      document.createElement(
-        "div"
-      );
-
-    messageBox.className =
-      "login-message";
-
-
-    const button =
-      loginModal.querySelector(
-        "#loginButton"
-      );
-
-
-    if (button) {
-
-      button.before(
-        messageBox
-      );
-
-    } else {
-
-      loginModal.appendChild(
-        messageBox
-      );
-
-    }
-
-  }
-
-
-  messageBox.textContent =
-    message;
-
-
-  setTimeout(
-    () => {
-
-      if (messageBox) {
-
-        messageBox.textContent =
-          "";
-
-      }
-
-    },
-    3000
+  alert(
+    `Welcome to NIJOK, ${player.name}! 🌿`
   );
 
 }
 
 
-/* =========================================================
-   33. WELCOME MESSAGE
-========================================================= */
-
-function showWelcomeMessage() {
-
-  if (!gameOverlay) {
-
-    return;
-
-  }
-
-
-  if (gameModeLabel) {
-
-    gameModeLabel.textContent =
-      "WELCOME TO NIJOK";
-
-  }
-
-
-  if (gameTitle) {
-
-    gameTitle.textContent =
-      `Welcome, ${player.name}!`;
-
-  }
-
-
-  if (gameDescription) {
-
-    gameDescription.textContent =
-      "Your Food Journey is ready to begin.";
-
-  }
-
-
-  if (gameQuestion) {
-
-    gameQuestion.innerHTML = `
-
-      <div class="limit-message">
-
-        🌿 Your profile has been created.
-
-        <br><br>
-
-        Your score, progress and
-        achievements will be saved
-        on this device.
-
-      </div>
-
-    `;
-
-  }
-
-
-  if (gameAnswers) {
-
-    gameAnswers.innerHTML =
-      "";
-
-  }
-
-
-  if (nextQuestion) {
-
-    nextQuestion.style.display =
-      "inline-flex";
-
-    nextQuestion.textContent =
-      "Start Exploring →";
-
-    nextQuestion.onclick =
-      closeGameAfterResult;
-
-  }
-
-
-  gameOverlay.classList.add(
-    "active"
-  );
-
-  gameOverlay.setAttribute(
-    "aria-hidden",
-    "false"
-  );
-
-  document.body.style.overflow =
-    "hidden";
-
-}
-
-
-/* =========================================================
-   34. LOGIN BUTTON
-========================================================= */
-
-if (loginButton) {
-
-  loginButton.addEventListener(
-    "click",
-    createAccount
-  );
-
-}
-
-
-/* =========================================================
-   35. LOGIN INPUT — ENTER KEY
-========================================================= */
-
-[loginName, loginEmail]
-  .forEach(
-    input => {
-
-      if (!input) {
-
-        return;
-
-      }
-
-
-      input.addEventListener(
-        "keydown",
-        event => {
-
-          if (
-            event.key ===
-            "Enter"
-          ) {
-
-            event.preventDefault();
-
-            createAccount();
-
-          }
-
-        }
-      );
-
-    }
-  );
-
-
-/* =========================================================
-   36. FALLBACK LOGIN
-   ---------------------------------------------------------
-   Used only if login modal is unavailable.
-========================================================= */
-
-function loginUserFallback() {
-
-  const name =
-    window.prompt(
-      "Welcome to NIJOK 🌿\n\nEnter your name:"
-    );
-
-
-  if (
-    !name ||
-    !name.trim()
-  ) {
-
-    return;
-
-  }
-
-
-  player.name =
-    name.trim();
-
-  player.loggedIn =
-    true;
-
-
-  savePlayer();
-
-  updateDashboard();
-
-  updateLoginUI();
-
-}
-
-
-/* =========================================================
-   37. LOGIN UI
-========================================================= */
-
-function updateLoginUI() {
-
-  const profileButtons =
-    document.querySelectorAll(
-      "[data-login], [data-profile], .profile-btn, #profileBtn"
-    );
-
-
-  profileButtons.forEach(
-    button => {
-
-      if (
-        player.loggedIn
-      ) {
-
-        button.textContent =
-          player.name;
-
-        button.setAttribute(
-          "aria-label",
-          "Open profile"
-        );
-
-      } else {
-
-        button.textContent =
-          "Login";
-
-        button.setAttribute(
-          "aria-label",
-          "Login to NIJOK"
-        );
-
-      }
-
-    }
-  );
-
-}
-
-
-/* =========================================================
-   38. PROFILE
-========================================================= */
+/* ---------------------------------------------------------
+   28. PROFILE
+--------------------------------------------------------- */
 
 function showProfile() {
 
@@ -3301,27 +2333,20 @@ function showProfile() {
     !player.loggedIn
   ) {
 
-    openLoginModal();
+    openLogin();
 
     return;
 
   }
 
 
-  if (!gameOverlay) {
-
-    return;
-
-  }
-
-
-  clearGameTimer();
+  clearTimer();
 
 
   if (gameModeLabel) {
 
     gameModeLabel.textContent =
-      "YOUR FOOD JOURNEY";
+      "FOOD EXPLORER";
 
   }
 
@@ -3337,64 +2362,53 @@ function showProfile() {
   if (gameDescription) {
 
     gameDescription.textContent =
-      "Food Explorer Profile";
+      "Your NIJOK Food Journey";
 
   }
+
+
+  const badges =
+    getBadges();
 
 
   if (gameQuestion) {
 
     gameQuestion.innerHTML = `
 
-      <div class="limit-message">
+      <div class="nijok-profile">
 
-        <strong>🌿 Food Explorer</strong>
+        <strong>
+          Level ${player.level}
+        </strong>
 
         <br><br>
 
         Score:
-        <strong>
-          ${player.totalScore}
-        </strong>
-
-        points
+        ${player.totalScore}
 
         <br><br>
 
-        Level:
-        <strong>
-          ${player.level}
-        </strong>
-
-        <br><br>
-
-        Games Played:
-        <strong>
-          ${player.gamesPlayed}
-        </strong>
+        Games:
+        ${player.gamesPlayed}
 
         <br><br>
 
         Correct Answers:
-        <strong>
-          ${player.correctAnswers}
-        </strong>
+        ${player.correctAnswers}
 
         <br><br>
 
-        Current Streak:
-        <strong>
-          ${player.streak}
-        </strong>
-
-        days
+        Streak:
+        ${player.streak} days
 
         <br><br>
 
         Badges:
-        <strong>
-          ${calculateBadges()}
-        </strong>
+        ${
+          badges.length
+            ? badges.join(" • ")
+            : "Keep exploring 🌱"
+        }
 
       </div>
 
@@ -3417,63 +2431,324 @@ function showProfile() {
       "inline-flex";
 
     nextQuestion.textContent =
-      "Close Profile →";
+      "Close →";
 
     nextQuestion.onclick =
-      closeGameAfterResult;
+      closeGame;
 
   }
 
 
-  gameOverlay.classList.add(
-    "active"
-  );
-
-  gameOverlay.setAttribute(
-    "aria-hidden",
-    "false"
-  );
-
-  document.body.style.overflow =
-    "hidden";
+  showGameOverlay();
 
 }
 
 
-/* =========================================================
-   39. LOGOUT
-========================================================= */
+/* ---------------------------------------------------------
+   29. DASHBOARD
+--------------------------------------------------------- */
 
-function logoutUser() {
+function updateDashboard() {
 
-  player.loggedIn =
-    false;
+  updateLevel();
 
 
-  savePlayer();
+  const possibleIds = {
 
-  updateDashboard();
+    score: [
+      "totalScore",
+      "scoreValue",
+      "dashboardScore"
+    ],
 
-  updateLoginUI();
+    games: [
+      "gamesPlayed",
+      "gamesValue"
+    ],
+
+    correct: [
+      "correctAnswers",
+      "correctValue"
+    ],
+
+    level: [
+      "userLevel",
+      "levelValue"
+    ],
+
+    streak: [
+      "streakValue",
+      "currentStreak"
+    ],
+
+    name: [
+      "profileName",
+      "userName"
+    ],
+
+    badges: [
+      "badgesEarned",
+      "badgeCount"
+    ]
+
+  };
+
+
+  setText(
+    possibleIds.score,
+    player.totalScore
+  );
+
+  setText(
+    possibleIds.games,
+    player.gamesPlayed
+  );
+
+  setText(
+    possibleIds.correct,
+    player.correctAnswers
+  );
+
+  setText(
+    possibleIds.level,
+    player.level
+  );
+
+  setText(
+    possibleIds.streak,
+    player.streak
+  );
+
+  setText(
+    possibleIds.name,
+    player.name ||
+    "Food Explorer"
+  );
+
+  setText(
+    possibleIds.badges,
+    getBadges().length
+  );
+
+
+  updateProfileButtons();
 
 }
 
 
-/* =========================================================
-   40. PROFILE BUTTON EVENTS
-========================================================= */
+function setText(
+  ids,
+  value
+) {
+
+  ids.forEach(
+    id => {
+
+      const element =
+        document.getElementById(
+          id
+        );
+
+
+      if (element) {
+
+        element.textContent =
+          value;
+
+      }
+
+    }
+  );
+
+}
+
+
+/* ---------------------------------------------------------
+   30. PROFILE BUTTONS
+--------------------------------------------------------- */
+
+function updateProfileButtons() {
+
+  const buttons =
+    document.querySelectorAll(
+      "[data-login], [data-profile], #profileBtn, #profileButton"
+    );
+
+
+  buttons.forEach(
+    button => {
+
+      if (
+        player.loggedIn
+      ) {
+
+        button.textContent =
+          player.name;
+
+      } else {
+
+        button.textContent =
+          "Login";
+
+      }
+
+    }
+  );
+
+}
+
+
+/* ---------------------------------------------------------
+   31. GAME BUTTONS
+--------------------------------------------------------- */
 
 document.addEventListener(
   "click",
   event => {
 
-    const target =
+    const button =
       event.target.closest(
-        "[data-login], [data-profile], .profile-btn, #profileBtn"
+        "[data-game]"
       );
 
 
-    if (!target) {
+    if (!button) {
+
+      return;
+
+    }
+
+
+    event.preventDefault();
+
+
+    const mode =
+      button.dataset.game;
+
+
+    if (
+      mode ===
+      "food"
+    ) {
+
+      openGame(
+        "quiz"
+      );
+
+      return;
+
+    }
+
+
+    openGame(
+      mode
+    );
+
+  }
+);
+
+
+/* ---------------------------------------------------------
+   32. CLOSE GAME
+--------------------------------------------------------- */
+
+if (closeGameButton) {
+
+  closeGameButton.addEventListener(
+    "click",
+    closeGame
+  );
+
+}
+
+
+/* ---------------------------------------------------------
+   33. NEXT QUESTION
+--------------------------------------------------------- */
+
+if (nextQuestion) {
+
+  nextQuestion.addEventListener(
+    "click",
+    () => {
+
+      if (
+        nextQuestion.onclick
+      ) {
+
+        return;
+
+      }
+
+
+      goToNextQuestion();
+
+    }
+  );
+
+}
+
+
+/* ---------------------------------------------------------
+   34. LOGIN EVENTS
+--------------------------------------------------------- */
+
+if (loginButton) {
+
+  loginButton.addEventListener(
+    "click",
+    createAccount
+  );
+
+}
+
+
+if (closeLoginButton) {
+
+  closeLoginButton.addEventListener(
+    "click",
+    closeLogin
+  );
+
+}
+
+
+if (loginModal) {
+
+  loginModal.addEventListener(
+    "click",
+    event => {
+
+      if (
+        event.target ===
+        loginModal
+      ) {
+
+        closeLogin();
+
+      }
+
+    }
+  );
+
+}
+
+
+/* ---------------------------------------------------------
+   35. PROFILE EVENTS
+--------------------------------------------------------- */
+
+document.addEventListener(
+  "click",
+  event => {
+
+    const button =
+      event.target.closest(
+        "[data-login], [data-profile], #profileBtn, #profileButton"
+      );
+
+
+    if (!button) {
 
       return;
 
@@ -3491,7 +2766,7 @@ document.addEventListener(
 
     } else {
 
-      openLoginModal();
+      openLogin();
 
     }
 
@@ -3499,680 +2774,9 @@ document.addEventListener(
 );
 
 
-/* =========================================================
-   41. DASHBOARD UPDATE
-========================================================= */
-
-function updateDashboard() {
-
-  updateLevel();
-
-
-  const score =
-    document.getElementById(
-      "totalScore"
-    );
-
-  const games =
-    document.getElementById(
-      "gamesPlayed"
-    );
-
-  const correct =
-    document.getElementById(
-      "correctAnswers"
-    );
-
-  const level =
-    document.getElementById(
-      "userLevel"
-    );
-
-  const name =
-    document.getElementById(
-      "profileName"
-    );
-
-  const badges =
-    document.getElementById(
-      "badgesEarned"
-    );
-
-  const progress =
-    document.getElementById(
-      "scoreProgress"
-    );
-
-
-  if (score) {
-
-    score.textContent =
-      player.totalScore;
-
-  }
-
-
-  if (games) {
-
-    games.textContent =
-      player.gamesPlayed;
-
-  }
-
-
-  if (correct) {
-
-    correct.textContent =
-      player.correctAnswers;
-
-  }
-
-
-  if (level) {
-
-    level.textContent =
-      player.level;
-
-  }
-
-
-  if (name) {
-
-    name.textContent =
-      player.name ||
-      "Guest Explorer";
-
-  }
-
-
-  if (badges) {
-
-    badges.textContent =
-      calculateBadges();
-
-  }
-
-
-  if (progress) {
-
-    const levelStart =
-      (player.level - 1) *
-      100;
-
-    const progressValue =
-      player.totalScore -
-      levelStart;
-
-
-    const percentage =
-      Math.min(
-        100,
-        Math.max(
-          0,
-          progressValue
-        )
-      );
-
-
-    progress.style.width =
-      `${percentage}%`;
-
-  }
-
-
-  updateLoginUI();
-
-}
-
-
-/* =========================================================
-   42. DAILY COUNTDOWN
-========================================================= */
-
-let countdownTimer =
-  null;
-
-
-function startCountdown() {
-
-  if (countdownTimer) {
-
-    clearInterval(
-      countdownTimer
-    );
-
-  }
-
-
-  updateCountdown();
-
-
-  countdownTimer =
-    setInterval(
-      updateCountdown,
-      1000
-    );
-
-}
-
-
-function updateCountdown() {
-
-  const now =
-    new Date();
-
-
-  const tomorrow =
-    new Date(
-      now
-    );
-
-
-  tomorrow.setHours(
-    24,
-    0,
-    0,
-    0
-  );
-
-
-  const difference =
-    Math.max(
-      0,
-      tomorrow - now
-    );
-
-
-  const totalSeconds =
-    Math.floor(
-      difference / 1000
-    );
-
-
-  const hours =
-    Math.floor(
-      totalSeconds /
-      3600
-    );
-
-
-  const minutes =
-    Math.floor(
-      (
-        totalSeconds %
-        3600
-      ) / 60
-    );
-
-
-  const seconds =
-    totalSeconds %
-    60;
-
-
-  const hourElement =
-    document.getElementById(
-      "hours"
-    );
-
-  const minuteElement =
-    document.getElementById(
-      "minutes"
-    );
-
-  const secondElement =
-    document.getElementById(
-      "seconds"
-    );
-
-
-  if (hourElement) {
-
-    hourElement.textContent =
-      String(hours).padStart(
-        2,
-        "0"
-      );
-
-  }
-
-
-  if (minuteElement) {
-
-    minuteElement.textContent =
-      String(minutes).padStart(
-        2,
-        "0"
-      );
-
-  }
-
-
-  if (secondElement) {
-
-    secondElement.textContent =
-      String(seconds).padStart(
-        2,
-        "0"
-      );
-
-  }
-
-
-  if (
-    totalSeconds <=
-    0
-  ) {
-
-    resetDailyProgress();
-
-  }
-
-}
-
-
-/* =========================================================
-   43. DAILY CHALLENGE BUTTON
-========================================================= */
-
-document
-  .querySelectorAll(
-    '[data-game="daily"]'
-  )
-  .forEach(
-    button => {
-
-      button.addEventListener(
-        "click",
-        () => {
-
-          openGame(
-            "daily"
-          );
-
-        }
-      );
-
-    }
-  );
-
-
-/* =========================================================
-   44. COMMUNITY COMMENTS
-========================================================= */
-
-const commentInput =
-  document.getElementById(
-    "commentInput"
-  );
-
-const commentButton =
-  document.getElementById(
-    "commentButton"
-  );
-
-const commentsList =
-  document.getElementById(
-    "commentsList"
-  );
-
-
-const COMMENTS_KEY =
-  "nijokComments";
-
-
-function loadComments() {
-
-  try {
-
-    const saved =
-      localStorage.getItem(
-        COMMENTS_KEY
-      );
-
-
-    if (!saved) {
-
-      return [];
-
-    }
-
-
-    const data =
-      JSON.parse(saved);
-
-
-    return Array.isArray(data)
-      ? data
-      : [];
-
-  } catch (error) {
-
-    console.error(
-      "NIJOK comments error:",
-      error
-    );
-
-    return [];
-
-  }
-
-}
-
-
-function saveComments(
-  comments
-) {
-
-  try {
-
-    localStorage.setItem(
-      COMMENTS_KEY,
-      JSON.stringify(
-        comments
-      )
-    );
-
-  } catch (error) {
-
-    console.error(
-      "NIJOK comment save error:",
-      error
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   45. POST COMMENT
-========================================================= */
-
-function postComment() {
-
-  if (!commentInput) {
-
-    return;
-
-  }
-
-
-  const text =
-    commentInput.value.trim();
-
-
-  if (!text) {
-
-    commentInput.focus();
-
-    return;
-
-  }
-
-
-  const comments =
-    loadComments();
-
-
-  comments.unshift({
-
-    name:
-      player.name ||
-      "Food Explorer",
-
-    text:
-      text,
-
-    date:
-      new Date().toISOString()
-
-  });
-
-
-  saveComments(
-    comments
-  );
-
-
-  commentInput.value =
-    "";
-
-
-  renderComments();
-
-}
-
-
-/* =========================================================
-   46. RENDER COMMENTS
-========================================================= */
-
-function renderComments() {
-
-  if (!commentsList) {
-
-    return;
-
-  }
-
-
-  const comments =
-    loadComments();
-
-
-  commentsList.innerHTML =
-    "";
-
-
-  if (!comments.length) {
-
-    const welcome =
-      document.createElement(
-        "div"
-      );
-
-
-    welcome.className =
-      "comment-card";
-
-
-    welcome.innerHTML = `
-
-      <div class="comment-avatar">
-        🌱
-      </div>
-
-      <div>
-
-        <strong>
-          Food Explorer
-        </strong>
-
-        <span>
-          Welcome to NIJOK!
-        </span>
-
-      </div>
-
-    `;
-
-
-    commentsList.appendChild(
-      welcome
-    );
-
-    return;
-
-  }
-
-
-  comments
-    .slice(0, 20)
-    .forEach(
-      comment => {
-
-        const card =
-          document.createElement(
-            "div"
-          );
-
-
-        card.className =
-          "comment-card";
-
-
-        const avatar =
-          document.createElement(
-            "div"
-          );
-
-
-        avatar.className =
-          "comment-avatar";
-
-
-        avatar.textContent =
-          "🌱";
-
-
-        const content =
-          document.createElement(
-            "div"
-          );
-
-
-        const name =
-          document.createElement(
-            "strong"
-          );
-
-
-        name.textContent =
-          comment.name ||
-          "Food Explorer";
-
-
-        const text =
-          document.createElement(
-            "span"
-          );
-
-
-        text.textContent =
-          comment.text;
-
-
-        content.appendChild(
-          name
-        );
-
-        content.appendChild(
-          text
-        );
-
-
-        card.appendChild(
-          avatar
-        );
-
-        card.appendChild(
-          content
-        );
-
-
-        commentsList.appendChild(
-          card
-        );
-
-      }
-    );
-
-}
-
-
-if (commentButton) {
-
-  commentButton.addEventListener(
-    "click",
-    postComment
-  );
-
-}
-
-
-if (commentInput) {
-
-  commentInput.addEventListener(
-    "keydown",
-    event => {
-
-      if (
-        (
-          event.ctrlKey ||
-          event.metaKey
-        ) &&
-        event.key ===
-        "Enter"
-      ) {
-
-        postComment();
-
-      }
-
-    }
-  );
-
-}
-
-
-/* =========================================================
-   47. PROFILE PREVIEW CLICK
-========================================================= */
-
-const profilePreview =
-  document.querySelector(
-    ".profile-preview"
-  );
-
-
-if (profilePreview) {
-
-  profilePreview.style.cursor =
-    "pointer";
-
-
-  profilePreview.addEventListener(
-    "click",
-    showProfile
-  );
-
-}
-
-
-/* =========================================================
-   48. PROFILE BUTTON IN JOURNEY
-========================================================= */
-
-const profileButton =
-  document.getElementById(
-    "profileButton"
-  );
-
-
-if (profileButton) {
-
-  profileButton.addEventListener(
-    "click",
-    showProfile
-  );
-
-}
-
-
-/* =========================================================
-   49. ESCAPE KEY
-========================================================= */
+/* ---------------------------------------------------------
+   36. ESCAPE
+--------------------------------------------------------- */
 
 document.addEventListener(
   "keydown",
@@ -4197,8 +2801,6 @@ document.addEventListener(
 
       closeGame();
 
-      return;
-
     }
 
 
@@ -4209,7 +2811,7 @@ document.addEventListener(
       )
     ) {
 
-      closeLoginModal();
+      closeLogin();
 
     }
 
@@ -4217,68 +2819,195 @@ document.addEventListener(
 );
 
 
-/* =========================================================
-   50. RESET GAME RESULT BUTTON HANDLER
-   ---------------------------------------------------------
-   Part 3A temporarily changes onclick for result screens.
-   This makes sure normal gameplay works again afterwards.
-========================================================= */
+/* ---------------------------------------------------------
+   37. COUNTDOWN
+--------------------------------------------------------- */
 
-function resetNextButtonHandler() {
+let countdownInterval =
+  null;
 
-  if (!nextQuestion) {
 
-    return;
+function updateCountdown() {
+
+  const now =
+    new Date();
+
+
+  const tomorrow =
+    new Date(
+      now
+    );
+
+
+  tomorrow.setDate(
+    tomorrow.getDate() + 1
+  );
+
+  tomorrow.setHours(
+    0,
+    0,
+    0,
+    0
+  );
+
+
+  const difference =
+    tomorrow -
+    now;
+
+
+  const totalSeconds =
+    Math.max(
+      0,
+      Math.floor(
+        difference /
+        1000
+      )
+    );
+
+
+  const hours =
+    Math.floor(
+      totalSeconds /
+      3600
+    );
+
+
+  const minutes =
+    Math.floor(
+      (
+        totalSeconds %
+        3600
+      ) /
+      60
+    );
+
+
+  const seconds =
+    totalSeconds %
+    60;
+
+
+  setText(
+    ["hours"],
+    String(
+      hours
+    ).padStart(
+      2,
+      "0"
+    )
+  );
+
+
+  setText(
+    ["minutes"],
+    String(
+      minutes
+    ).padStart(
+      2,
+      "0"
+    )
+  );
+
+
+  setText(
+    ["seconds"],
+    String(
+      seconds
+    ).padStart(
+      2,
+      "0"
+    )
+  );
+
+}
+
+
+function startCountdown() {
+
+  updateCountdown();
+
+
+  if (
+    countdownInterval
+  ) {
+
+    clearInterval(
+      countdownInterval
+    );
 
   }
 
 
-  nextQuestion.onclick =
-    goToNextQuestion;
+  countdownInterval =
+    setInterval(
+      updateCountdown,
+      1000
+    );
 
 }
 
 
-/* =========================================================
-   51. REFRESH DAILY STATE
-========================================================= */
+/* ---------------------------------------------------------
+   38. ESCAPE HTML
+--------------------------------------------------------- */
 
-function refreshDailyState() {
+function escapeHTML(
+  value
+) {
 
-  resetDailyProgress();
-
-  updateDashboard();
+  return String(
+    value
+  )
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+    .replace(
+      /</g,
+      "&lt;"
+    )
+    .replace(
+      />/g,
+      "&gt;"
+    )
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+    .replace(
+      /'/g,
+      "&#039;"
+    );
 
 }
 
 
-/* =========================================================
-   52. INITIALIZATION
-========================================================= */
+/* ---------------------------------------------------------
+   39. INITIALIZATION
+--------------------------------------------------------- */
 
-refreshDailyState();
+checkDailyReset();
 
-renderComments();
+updateLevel();
+
+updateDashboard();
 
 startCountdown();
 
-updateLoginUI();
-
-
-/* =========================================================
-   53. DEVELOPMENT STATUS
-========================================================= */
 
 console.log(
-  "NIJOK 3.0 Part 3B loaded successfully 🌿"
+  "NIJOK Game Engine loaded successfully 🌿"
 );
 
 console.log(
-  "Player:",
+  "NIJOK player:",
   player
 );
 
 console.log(
-  "Game modes:",
-  Object.keys(gameInfo)
+  "NIJOK game modes:",
+  Object.keys(
+    GAME_INFO
+  )
 );
