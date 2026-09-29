@@ -1,1 +1,622 @@
+:root {
+  --green: #075b45;
+  --green-dark: #043d30;
+  --green-soft: #dfead2;
+  --cream: #f7f5e9;
+  --paper: #fffdf6;
+  --text: #173b32;
+  --muted: #718078;
+  --line: #dfe4d7;
+  --gold: #d9b642;
+}
 
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--cream);
+  color: var(--text);
+  font-family: Arial, Helvetica, sans-serif;
+  line-height: 1.5;
+}
+
+button,
+a {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+
+/* ================= HEADER ================= */
+
+.site-header {
+  min-height: 78px;
+  padding: 14px 5%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+
+  background: rgba(247, 245, 233, .96);
+  border-bottom: 1px solid var(--line);
+
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+
+/* ================= BRAND ================= */
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 205px;
+}
+
+.brand-mark {
+  width: 43px;
+  height: 43px;
+  display: block;
+}
+
+.brand-mark svg {
+  width: 100%;
+  height: 100%;
+}
+
+.brand-mark path:first-child {
+  fill: var(--green);
+}
+
+.brand-mark path:last-child {
+  fill: none;
+  stroke: var(--cream);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+
+.brand-text strong {
+  display: block;
+
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 25px;
+  line-height: 1;
+  letter-spacing: 2.5px;
+}
+
+.brand-text small {
+  display: block;
+  margin-top: 5px;
+
+  color: var(--muted);
+  font-size: 8px;
+  letter-spacing: .5px;
+}
+
+
+/* ================= NAVIGATION ================= */
+
+.navigation {
+  display: flex;
+  align-items: center;
+  gap: 21px;
+
+  color: #50645c;
+  font-size: 11px;
+}
+
+.navigation a {
+  transition: color .2s ease;
+}
+
+.navigation a:hover {
+  color: var(--green);
+}
+
+
+/* ================= BUTTONS ================= */
+
+.login-button,
+.secondary-button {
+  border: 1px solid #b9c5b9;
+  background: transparent;
+  color: var(--text);
+
+  padding: 10px 18px;
+  border-radius: 30px;
+
+  transition: .2s ease;
+}
+
+.login-button:hover,
+.secondary-button:hover {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.primary-button {
+  border: 0;
+  background: var(--green);
+  color: white;
+
+  padding: 13px 21px;
+  border-radius: 30px;
+
+  box-shadow: 0 8px 20px rgba(7, 91, 69, .16);
+}
+
+.primary-button span {
+  margin-left: 8px;
+}
+
+
+/* ================= HERO ================= */
+
+.hero {
+  min-height: 535px;
+  padding: 70px 7%;
+
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 55px;
+}
+
+.eyebrow {
+  margin-bottom: 13px;
+
+  color: var(--green);
+  font-size: 10px;
+  font-weight: bold;
+  letter-spacing: 2px;
+}
+
+.hero h1 {
+  margin-bottom: 24px;
+
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(48px, 7vw, 78px);
+  font-weight: 500;
+  line-height: .91;
+  letter-spacing: -2px;
+}
+
+.hero-description {
+  max-width: 470px;
+  margin-bottom: 28px;
+
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+
+/* ================= HERO VISUAL ================= */
+
+.hero-visual {
+  min-height: 370px;
+  position: relative;
+}
+
+.visual-orbit {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(7, 91, 69, .12);
+}
+
+.orbit-one {
+  width: 360px;
+  height: 300px;
+  top: 35px;
+  left: 45px;
+}
+
+.orbit-two {
+  width: 270px;
+  height: 270px;
+  top: 55px;
+  left: 90px;
+}
+
+.food-placeholder {
+  position: absolute;
+
+  display: grid;
+  place-items: center;
+
+  width: 45%;
+  height: 43%;
+
+  border-radius: 30px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255,255,255,.9),
+      rgba(223,234,210,.9)
+    );
+
+  border: 5px solid rgba(255,255,255,.8);
+
+  box-shadow:
+    0 18px 35px rgba(30,55,40,.13);
+
+  transform: rotate(-5deg);
+}
+
+.food-placeholder span {
+  color: rgba(7,91,69,.28);
+  font-family: Georgia, serif;
+  font-size: 13px;
+  letter-spacing: 3px;
+}
+
+.food-one {
+  top: 10px;
+  left: 4%;
+}
+
+.food-two {
+  top: 0;
+  right: 2%;
+  transform: rotate(5deg);
+  background: #eadfbd;
+}
+
+.food-three {
+  bottom: 2%;
+  left: 7%;
+  transform: rotate(5deg);
+  background: #dce9df;
+}
+
+.food-four {
+  bottom: 7%;
+  right: 2%;
+  transform: rotate(-4deg);
+  background: #e7ecd5;
+}
+
+
+/* ================= BRAND VALUES ================= */
+
+.brand-values {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+
+  border-block: 1px solid var(--line);
+}
+
+.value-card {
+  padding: 27px 20px;
+  text-align: center;
+
+  border-right: 1px solid var(--line);
+}
+
+.value-card:last-child {
+  border-right: 0;
+}
+
+.value-card span {
+  color: var(--green);
+  font-size: 10px;
+}
+
+.value-card h2 {
+  margin: 5px 0;
+
+  font-family: Georgia, serif;
+  font-size: 23px;
+  font-weight: 500;
+}
+
+.value-card p {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+
+/* ================= CHALLENGES ================= */
+
+.challenges {
+  padding: 82px 7%;
+}
+
+.section-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 30px;
+
+  margin-bottom: 36px;
+}
+
+.section-heading h2 {
+  font-family: Georgia, serif;
+  font-size: 51px;
+  font-weight: 500;
+  line-height: .94;
+}
+
+.section-heading > p {
+  max-width: 390px;
+
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.challenge-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+}
+
+.challenge-card {
+  min-height: 245px;
+
+  padding: 22px;
+
+  text-align: left;
+
+  border: 1px solid var(--line);
+  border-radius: 25px;
+
+  background: var(--paper);
+  color: var(--text);
+
+  transition:
+    transform .2s ease,
+    box-shadow .2s ease,
+    border-color .2s ease;
+}
+
+.challenge-card:hover {
+  transform: translateY(-6px);
+
+  border-color: #cbd8c8;
+
+  box-shadow:
+    0 18px 38px rgba(30,55,40,.10);
+}
+
+.challenge-index {
+  display: block;
+
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.challenge-symbol {
+  display: block;
+
+  margin: 22px 0 17px;
+
+  color: var(--green);
+  font-size: 34px;
+}
+
+.challenge-card h3 {
+  margin-bottom: 7px;
+
+  font-family: Georgia, serif;
+  font-size: 21px;
+  font-weight: 500;
+}
+
+.challenge-card p {
+  min-height: 42px;
+
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.challenge-card small {
+  display: block;
+  margin-top: 19px;
+
+  color: var(--green);
+  font-size: 10px;
+  font-weight: bold;
+}
+
+
+/* ================= FUTURE ================= */
+
+.future-section {
+  padding: 80px 7%;
+  border-top: 1px solid var(--line);
+}
+
+.future-section h2 {
+  margin-bottom: 8px;
+
+  font-family: Georgia, serif;
+  font-size: 45px;
+  font-weight: 500;
+}
+
+.future-section p:last-child {
+  color: var(--muted);
+}
+
+
+/* ================= FOOTER ================= */
+
+footer {
+  padding: 48px 7%;
+
+  background: var(--green-dark);
+  color: white;
+}
+
+.footer-brand span {
+  font-family: Georgia, serif;
+  font-size: 25px;
+  letter-spacing: 2px;
+}
+
+.footer-brand p {
+  margin-top: 5px;
+
+  opacity: .7;
+  font-size: 12px;
+}
+
+
+/* ================= TABLET ================= */
+
+@media (max-width: 950px) {
+
+  .navigation {
+    display: none;
+  }
+
+  .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-visual {
+    min-height: 330px;
+  }
+
+  .challenge-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+}
+
+
+/* ================= MOBILE ================= */
+
+@media (max-width: 560px) {
+
+  .site-header {
+    min-height: 70px;
+    padding: 11px 5%;
+  }
+
+  .brand {
+    min-width: 0;
+  }
+
+  .brand-mark {
+    width: 38px;
+    height: 38px;
+  }
+
+  .brand-text strong {
+    font-size: 22px;
+  }
+
+  .brand-text small {
+    font-size: 7px;
+  }
+
+  .login-button {
+    padding: 8px 13px;
+    font-size: 11px;
+  }
+
+  .hero {
+    min-height: auto;
+    padding: 58px 6% 45px;
+  }
+
+  .hero h1 {
+    font-size: 51px;
+    letter-spacing: -1.5px;
+  }
+
+  .hero-description {
+    font-size: 13px;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+  }
+
+  .hero-actions button {
+    width: 100%;
+  }
+
+  .hero-visual {
+    min-height: 285px;
+  }
+
+  .orbit-one {
+    width: 280px;
+    height: 235px;
+    left: 20px;
+  }
+
+  .orbit-two {
+    width: 210px;
+    height: 210px;
+    left: 55px;
+  }
+
+  .brand-values {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .value-card {
+    padding: 21px 10px;
+  }
+
+  .value-card:nth-child(2) {
+    border-right: 0;
+  }
+
+  .value-card:nth-child(-n+2) {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .challenges {
+    padding: 65px 6%;
+  }
+
+  .section-heading {
+    display: block;
+  }
+
+  .section-heading h2 {
+    margin-bottom: 20px;
+    font-size: 45px;
+  }
+
+  .challenge-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .challenge-card {
+    min-height: 205px;
+  }
+
+  .future-section {
+    padding: 65px 6%;
+  }
+
+}
