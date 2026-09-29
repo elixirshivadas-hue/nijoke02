@@ -16,11 +16,11 @@
 
 <body>
 
-  <!-- HEADER -->
+  <!-- ================= HEADER ================= -->
 
   <header class="site-header">
 
-    <a href="#home" class="brand">
+    <a href="#home" class="brand" id="brandHome">
 
       <span class="brand-mark">
         <svg viewBox="0 0 100 100" aria-hidden="true">
@@ -55,13 +55,11 @@
   </header>
 
 
-  <!-- MAIN -->
+  <!-- ================= HOME ================= -->
 
-  <main>
+  <main id="homePage">
 
-    <!-- HERO -->
-
-    <section class="hero" id="home">
+    <section class="hero">
 
       <div class="hero-content">
 
@@ -82,7 +80,8 @@
         <div class="hero-actions">
 
           <button class="primary-button" id="startButton">
-            Start Exploring <span>→</span>
+            Start Exploring
+            <span>→</span>
           </button>
 
           <button class="secondary-button" id="howButton">
@@ -94,65 +93,47 @@
       </div>
 
 
-      <!-- FOOD VISUAL -->
-
       <div class="hero-visual">
 
         <div class="visual-orbit orbit-one"></div>
         <div class="visual-orbit orbit-two"></div>
 
-
         <div class="food-placeholder food-one">
-
           <div class="food-art thali-art">
             <span class="rice"></span>
             <span class="curry"></span>
             <span class="dal"></span>
             <span class="vegetable"></span>
           </div>
-
           <small>INDIA</small>
-
         </div>
 
-
         <div class="food-placeholder food-two">
-
           <div class="food-art noodles-art">
             <span></span>
             <span></span>
             <span></span>
           </div>
-
           <small>ASIA</small>
-
         </div>
 
-
         <div class="food-placeholder food-three">
-
           <div class="food-art salad-art">
             <span></span>
             <span></span>
             <span></span>
             <span></span>
           </div>
-
           <small>FRESH</small>
-
         </div>
 
-
         <div class="food-placeholder food-four">
-
           <div class="food-art fruit-art">
             <span></span>
             <span></span>
             <span></span>
           </div>
-
           <small>NATURE</small>
-
         </div>
 
       </div>
@@ -191,7 +172,7 @@
     </section>
 
 
-    <!-- CHALLENGES -->
+    <!-- ================= CHALLENGES ================= -->
 
     <section class="challenges" id="challenges">
 
@@ -211,8 +192,8 @@
         </div>
 
         <p>
-          Choose a challenge and start your food journey.
-          Questions will appear only after you select a challenge.
+          Pick a challenge to begin. Your questions appear
+          only after you enter the challenge.
         </p>
 
       </div>
@@ -297,7 +278,7 @@
         </button>
 
 
-        <button class="challenge-card puzzle-card" data-challenge="puzzle">
+        <button class="challenge-card" data-challenge="puzzle">
 
           <span class="challenge-index">05</span>
 
@@ -321,17 +302,13 @@
     </section>
 
 
-    <!-- FUTURE SECTIONS -->
+    <!-- ================= FUTURE SECTIONS ================= -->
 
     <section class="future-section" id="passport">
 
-      <p class="eyebrow">
-        YOUR JOURNEY
-      </p>
+      <p class="eyebrow">YOUR JOURNEY</p>
 
-      <h2>
-        Food Passport
-      </h2>
+      <h2>Food Passport</h2>
 
       <p>
         Your personal journey through food, culture and places.
@@ -342,13 +319,9 @@
 
     <section class="future-section" id="museum">
 
-      <p class="eyebrow">
-        DISCOVER
-      </p>
+      <p class="eyebrow">DISCOVER</p>
 
-      <h2>
-        Food Museum
-      </h2>
+      <h2>Food Museum</h2>
 
       <p>
         Explore ingredients, traditions and food stories.
@@ -359,13 +332,9 @@
 
     <section class="future-section" id="learn">
 
-      <p class="eyebrow">
-        KNOWLEDGE
-      </p>
+      <p class="eyebrow">KNOWLEDGE</p>
 
-      <h2>
-        Learn With NIJOK
-      </h2>
+      <h2>Learn With NIJOK</h2>
 
       <p>
         Simple food knowledge designed for everyone.
@@ -376,9 +345,146 @@
   </main>
 
 
-  <!-- FOOTER -->
+  <!-- ================= CHALLENGE PAGE ================= -->
 
-  <footer id="about">
+  <section class="challenge-page hidden" id="challengePage">
+
+    <div class="challenge-topbar">
+
+      <button class="back-button" id="backButton">
+        ← Challenges
+      </button>
+
+      <span class="daily-label">
+        DAILY CHALLENGE
+      </span>
+
+    </div>
+
+
+    <div class="challenge-intro">
+
+      <p class="eyebrow" id="challengeEyebrow">
+        NIJOK CHALLENGE
+      </p>
+
+      <h2 id="challengeTitle">
+        Guess the Food
+      </h2>
+
+      <p id="challengeDescription">
+        Identify food from beautiful food images.
+      </p>
+
+    </div>
+
+
+    <div class="challenge-info">
+
+      <div class="info-box">
+
+        <span>DAILY LIMIT</span>
+
+        <strong id="challengeLimit">
+          10
+        </strong>
+
+      </div>
+
+
+      <div class="info-box">
+
+        <span>COMPLETED</span>
+
+        <strong id="challengeCompleted">
+          0
+        </strong>
+
+      </div>
+
+
+      <div class="info-box">
+
+        <span>REMAINING</span>
+
+        <strong id="challengeRemaining">
+          10
+        </strong>
+
+      </div>
+
+    </div>
+
+
+    <div class="challenge-start-card">
+
+      <div class="start-icon" id="startIcon">
+        ◉
+      </div>
+
+      <h3 id="startHeading">
+        Ready to play?
+      </h3>
+
+      <p id="startMessage">
+        Your daily questions are waiting.
+      </p>
+
+      <button class="primary-button" id="beginChallengeButton">
+        Start Challenge →
+      </button>
+
+    </div>
+
+
+    <div class="daily-note">
+
+      <strong>100-Day Journey</strong>
+
+      <p>
+        Your progress will be saved as you complete each daily challenge.
+      </p>
+
+    </div>
+
+  </section>
+
+
+  <!-- ================= HOW IT WORKS ================= -->
+
+  <div class="modal hidden" id="howModal">
+
+    <div class="modal-card">
+
+      <button class="modal-close" id="closeHow">
+        ×
+      </button>
+
+      <p class="eyebrow">
+        HOW NIJOK WORKS
+      </p>
+
+      <h2>
+        Learn. Play. Discover.
+      </h2>
+
+      <p>
+        Choose a challenge, answer questions, earn your score
+        and build your personal food journey.
+      </p>
+
+      <button class="primary-button" id="modalChallengeButton">
+        Choose a Challenge →
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- ================= FOOTER ================= -->
+
+  <footer>
 
     <div class="footer-brand">
 
