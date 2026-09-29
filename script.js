@@ -2134,7 +2134,16 @@ if (
   "loading"
 ) {
 
-  document.addEventListener(
+ // =====================================
+// PLAY BUTTON FIX
+// =====================================
+
+function openGame(type) {
+  startGame(type);
+}
+
+// Make it available to HTML onclick=""
+window.openGame = openGame; document.addEventListener(
     "DOMContentLoaded",
     initializeNIJOK
   );
