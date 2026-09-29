@@ -2736,3 +2736,1549 @@ updateDashboard();
 console.log(
   "NIJOK Game Engine Part 3A loaded successfully 🌿"
 );
+/* =========================================================
+   NIJOK 3.0 — PART 3B
+   PROFILE • LOGIN • DASHBOARD • DAILY • COMMUNITY
+   ---------------------------------------------------------
+   This part continues directly after Part 3A.
+========================================================= */
+
+
+/* =========================================================
+   28. PROFILE / LOGIN ELEMENTS
+========================================================= */
+
+const loginModal =
+  document.getElementById(
+    "loginModal"
+  );
+
+const closeLoginButton =
+  loginModal
+    ? loginModal.querySelector(
+        ".close-modal"
+      )
+    : null;
+
+const loginName =
+  document.getElementById(
+    "loginName"
+  );
+
+const loginEmail =
+  document.getElementById(
+    "loginEmail"
+  );
+
+const loginButton =
+  document.getElementById(
+    "loginButton"
+  );
+
+
+/* =========================================================
+   29. OPEN LOGIN MODAL
+========================================================= */
+
+function openLoginModal() {
+
+  if (!loginModal) {
+
+    loginUserFallback();
+
+    return;
+
+  }
+
+
+  loginModal.classList.add(
+    "active"
+  );
+
+  loginModal.setAttribute(
+    "aria-hidden",
+    "false"
+  );
+
+
+  document.body.style.overflow =
+    "hidden";
+
+
+  if (loginName) {
+
+    loginName.value =
+      player.loggedIn
+        ? player.name
+        : "";
+
+  }
+
+
+  if (loginEmail) {
+
+    loginEmail.value =
+      player.email || "";
+
+  }
+
+
+  setTimeout(
+    () => {
+
+      if (loginName) {
+
+        loginName.focus();
+
+      }
+
+    },
+    100
+  );
+
+}
+
+
+/* =========================================================
+   30. CLOSE LOGIN MODAL
+========================================================= */
+
+function closeLoginModal() {
+
+  if (!loginModal) {
+
+    return;
+
+  }
+
+
+  loginModal.classList.remove(
+    "active"
+  );
+
+  loginModal.setAttribute(
+    "aria-hidden",
+    "true"
+  );
+
+
+  document.body.style.overflow =
+    "";
+
+}
+
+
+if (closeLoginButton) {
+
+  closeLoginButton.addEventListener(
+    "click",
+    closeLoginModal
+  );
+
+}
+
+
+if (loginModal) {
+
+  loginModal.addEventListener(
+    "click",
+    event => {
+
+      if (
+        event.target ===
+        loginModal
+      ) {
+
+        closeLoginModal();
+
+      }
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   31. CREATE / LOGIN ACCOUNT
+========================================================= */
+
+function createAccount() {
+
+  const name =
+    loginName
+      ? loginName.value.trim()
+      : "";
+
+  const email =
+    loginEmail
+      ? loginEmail.value.trim()
+      : "";
+
+
+  if (!name) {
+
+    if (loginName) {
+
+      loginName.focus();
+
+    }
+
+    showLoginMessage(
+      "Please enter your name."
+    );
+
+    return;
+
+  }
+
+
+  if (
+    email &&
+    !isValidEmail(email)
+  ) {
+
+    if (loginEmail) {
+
+      loginEmail.focus();
+
+    }
+
+    showLoginMessage(
+      "Please enter a valid email address."
+    );
+
+    return;
+
+  }
+
+
+  player.name =
+    name;
+
+  player.email =
+    email;
+
+  player.loggedIn =
+    true;
+
+
+  savePlayer();
+
+
+  updateDashboard();
+
+  updateLoginUI();
+
+  closeLoginModal();
+
+
+  showWelcomeMessage();
+
+}
+
+
+function isValidEmail(email) {
+
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    .test(email);
+
+}
+
+
+/* =========================================================
+   32. LOGIN MESSAGE
+========================================================= */
+
+function showLoginMessage(message) {
+
+  if (!loginModal) {
+
+    return;
+
+  }
+
+
+  let messageBox =
+    loginModal.querySelector(
+      ".login-message"
+    );
+
+
+  if (!messageBox) {
+
+    messageBox =
+      document.createElement(
+        "div"
+      );
+
+    messageBox.className =
+      "login-message";
+
+
+    const button =
+      loginModal.querySelector(
+        "#loginButton"
+      );
+
+
+    if (button) {
+
+      button.before(
+        messageBox
+      );
+
+    } else {
+
+      loginModal.appendChild(
+        messageBox
+      );
+
+    }
+
+  }
+
+
+  messageBox.textContent =
+    message;
+
+
+  setTimeout(
+    () => {
+
+      if (messageBox) {
+
+        messageBox.textContent =
+          "";
+
+      }
+
+    },
+    3000
+  );
+
+}
+
+
+/* =========================================================
+   33. WELCOME MESSAGE
+========================================================= */
+
+function showWelcomeMessage() {
+
+  if (!gameOverlay) {
+
+    return;
+
+  }
+
+
+  if (gameModeLabel) {
+
+    gameModeLabel.textContent =
+      "WELCOME TO NIJOK";
+
+  }
+
+
+  if (gameTitle) {
+
+    gameTitle.textContent =
+      `Welcome, ${player.name}!`;
+
+  }
+
+
+  if (gameDescription) {
+
+    gameDescription.textContent =
+      "Your Food Journey is ready to begin.";
+
+  }
+
+
+  if (gameQuestion) {
+
+    gameQuestion.innerHTML = `
+
+      <div class="limit-message">
+
+        🌿 Your profile has been created.
+
+        <br><br>
+
+        Your score, progress and
+        achievements will be saved
+        on this device.
+
+      </div>
+
+    `;
+
+  }
+
+
+  if (gameAnswers) {
+
+    gameAnswers.innerHTML =
+      "";
+
+  }
+
+
+  if (nextQuestion) {
+
+    nextQuestion.style.display =
+      "inline-flex";
+
+    nextQuestion.textContent =
+      "Start Exploring →";
+
+    nextQuestion.onclick =
+      closeGameAfterResult;
+
+  }
+
+
+  gameOverlay.classList.add(
+    "active"
+  );
+
+  gameOverlay.setAttribute(
+    "aria-hidden",
+    "false"
+  );
+
+  document.body.style.overflow =
+    "hidden";
+
+}
+
+
+/* =========================================================
+   34. LOGIN BUTTON
+========================================================= */
+
+if (loginButton) {
+
+  loginButton.addEventListener(
+    "click",
+    createAccount
+  );
+
+}
+
+
+/* =========================================================
+   35. LOGIN INPUT — ENTER KEY
+========================================================= */
+
+[loginName, loginEmail]
+  .forEach(
+    input => {
+
+      if (!input) {
+
+        return;
+
+      }
+
+
+      input.addEventListener(
+        "keydown",
+        event => {
+
+          if (
+            event.key ===
+            "Enter"
+          ) {
+
+            event.preventDefault();
+
+            createAccount();
+
+          }
+
+        }
+      );
+
+    }
+  );
+
+
+/* =========================================================
+   36. FALLBACK LOGIN
+   ---------------------------------------------------------
+   Used only if login modal is unavailable.
+========================================================= */
+
+function loginUserFallback() {
+
+  const name =
+    window.prompt(
+      "Welcome to NIJOK 🌿\n\nEnter your name:"
+    );
+
+
+  if (
+    !name ||
+    !name.trim()
+  ) {
+
+    return;
+
+  }
+
+
+  player.name =
+    name.trim();
+
+  player.loggedIn =
+    true;
+
+
+  savePlayer();
+
+  updateDashboard();
+
+  updateLoginUI();
+
+}
+
+
+/* =========================================================
+   37. LOGIN UI
+========================================================= */
+
+function updateLoginUI() {
+
+  const profileButtons =
+    document.querySelectorAll(
+      "[data-login], [data-profile], .profile-btn, #profileBtn"
+    );
+
+
+  profileButtons.forEach(
+    button => {
+
+      if (
+        player.loggedIn
+      ) {
+
+        button.textContent =
+          player.name;
+
+        button.setAttribute(
+          "aria-label",
+          "Open profile"
+        );
+
+      } else {
+
+        button.textContent =
+          "Login";
+
+        button.setAttribute(
+          "aria-label",
+          "Login to NIJOK"
+        );
+
+      }
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   38. PROFILE
+========================================================= */
+
+function showProfile() {
+
+  if (
+    !player.loggedIn
+  ) {
+
+    openLoginModal();
+
+    return;
+
+  }
+
+
+  if (!gameOverlay) {
+
+    return;
+
+  }
+
+
+  clearGameTimer();
+
+
+  if (gameModeLabel) {
+
+    gameModeLabel.textContent =
+      "YOUR FOOD JOURNEY";
+
+  }
+
+
+  if (gameTitle) {
+
+    gameTitle.textContent =
+      player.name;
+
+  }
+
+
+  if (gameDescription) {
+
+    gameDescription.textContent =
+      "Food Explorer Profile";
+
+  }
+
+
+  if (gameQuestion) {
+
+    gameQuestion.innerHTML = `
+
+      <div class="limit-message">
+
+        <strong>🌿 Food Explorer</strong>
+
+        <br><br>
+
+        Score:
+        <strong>
+          ${player.totalScore}
+        </strong>
+
+        points
+
+        <br><br>
+
+        Level:
+        <strong>
+          ${player.level}
+        </strong>
+
+        <br><br>
+
+        Games Played:
+        <strong>
+          ${player.gamesPlayed}
+        </strong>
+
+        <br><br>
+
+        Correct Answers:
+        <strong>
+          ${player.correctAnswers}
+        </strong>
+
+        <br><br>
+
+        Current Streak:
+        <strong>
+          ${player.streak}
+        </strong>
+
+        days
+
+        <br><br>
+
+        Badges:
+        <strong>
+          ${calculateBadges()}
+        </strong>
+
+      </div>
+
+    `;
+
+  }
+
+
+  if (gameAnswers) {
+
+    gameAnswers.innerHTML =
+      "";
+
+  }
+
+
+  if (nextQuestion) {
+
+    nextQuestion.style.display =
+      "inline-flex";
+
+    nextQuestion.textContent =
+      "Close Profile →";
+
+    nextQuestion.onclick =
+      closeGameAfterResult;
+
+  }
+
+
+  gameOverlay.classList.add(
+    "active"
+  );
+
+  gameOverlay.setAttribute(
+    "aria-hidden",
+    "false"
+  );
+
+  document.body.style.overflow =
+    "hidden";
+
+}
+
+
+/* =========================================================
+   39. LOGOUT
+========================================================= */
+
+function logoutUser() {
+
+  player.loggedIn =
+    false;
+
+
+  savePlayer();
+
+  updateDashboard();
+
+  updateLoginUI();
+
+}
+
+
+/* =========================================================
+   40. PROFILE BUTTON EVENTS
+========================================================= */
+
+document.addEventListener(
+  "click",
+  event => {
+
+    const target =
+      event.target.closest(
+        "[data-login], [data-profile], .profile-btn, #profileBtn"
+      );
+
+
+    if (!target) {
+
+      return;
+
+    }
+
+
+    event.preventDefault();
+
+
+    if (
+      player.loggedIn
+    ) {
+
+      showProfile();
+
+    } else {
+
+      openLoginModal();
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   41. DASHBOARD UPDATE
+========================================================= */
+
+function updateDashboard() {
+
+  updateLevel();
+
+
+  const score =
+    document.getElementById(
+      "totalScore"
+    );
+
+  const games =
+    document.getElementById(
+      "gamesPlayed"
+    );
+
+  const correct =
+    document.getElementById(
+      "correctAnswers"
+    );
+
+  const level =
+    document.getElementById(
+      "userLevel"
+    );
+
+  const name =
+    document.getElementById(
+      "profileName"
+    );
+
+  const badges =
+    document.getElementById(
+      "badgesEarned"
+    );
+
+  const progress =
+    document.getElementById(
+      "scoreProgress"
+    );
+
+
+  if (score) {
+
+    score.textContent =
+      player.totalScore;
+
+  }
+
+
+  if (games) {
+
+    games.textContent =
+      player.gamesPlayed;
+
+  }
+
+
+  if (correct) {
+
+    correct.textContent =
+      player.correctAnswers;
+
+  }
+
+
+  if (level) {
+
+    level.textContent =
+      player.level;
+
+  }
+
+
+  if (name) {
+
+    name.textContent =
+      player.name ||
+      "Guest Explorer";
+
+  }
+
+
+  if (badges) {
+
+    badges.textContent =
+      calculateBadges();
+
+  }
+
+
+  if (progress) {
+
+    const levelStart =
+      (player.level - 1) *
+      100;
+
+    const progressValue =
+      player.totalScore -
+      levelStart;
+
+
+    const percentage =
+      Math.min(
+        100,
+        Math.max(
+          0,
+          progressValue
+        )
+      );
+
+
+    progress.style.width =
+      `${percentage}%`;
+
+  }
+
+
+  updateLoginUI();
+
+}
+
+
+/* =========================================================
+   42. DAILY COUNTDOWN
+========================================================= */
+
+let countdownTimer =
+  null;
+
+
+function startCountdown() {
+
+  if (countdownTimer) {
+
+    clearInterval(
+      countdownTimer
+    );
+
+  }
+
+
+  updateCountdown();
+
+
+  countdownTimer =
+    setInterval(
+      updateCountdown,
+      1000
+    );
+
+}
+
+
+function updateCountdown() {
+
+  const now =
+    new Date();
+
+
+  const tomorrow =
+    new Date(
+      now
+    );
+
+
+  tomorrow.setHours(
+    24,
+    0,
+    0,
+    0
+  );
+
+
+  const difference =
+    Math.max(
+      0,
+      tomorrow - now
+    );
+
+
+  const totalSeconds =
+    Math.floor(
+      difference / 1000
+    );
+
+
+  const hours =
+    Math.floor(
+      totalSeconds /
+      3600
+    );
+
+
+  const minutes =
+    Math.floor(
+      (
+        totalSeconds %
+        3600
+      ) / 60
+    );
+
+
+  const seconds =
+    totalSeconds %
+    60;
+
+
+  const hourElement =
+    document.getElementById(
+      "hours"
+    );
+
+  const minuteElement =
+    document.getElementById(
+      "minutes"
+    );
+
+  const secondElement =
+    document.getElementById(
+      "seconds"
+    );
+
+
+  if (hourElement) {
+
+    hourElement.textContent =
+      String(hours).padStart(
+        2,
+        "0"
+      );
+
+  }
+
+
+  if (minuteElement) {
+
+    minuteElement.textContent =
+      String(minutes).padStart(
+        2,
+        "0"
+      );
+
+  }
+
+
+  if (secondElement) {
+
+    secondElement.textContent =
+      String(seconds).padStart(
+        2,
+        "0"
+      );
+
+  }
+
+
+  if (
+    totalSeconds <=
+    0
+  ) {
+
+    resetDailyProgress();
+
+  }
+
+}
+
+
+/* =========================================================
+   43. DAILY CHALLENGE BUTTON
+========================================================= */
+
+document
+  .querySelectorAll(
+    '[data-game="daily"]'
+  )
+  .forEach(
+    button => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          openGame(
+            "daily"
+          );
+
+        }
+      );
+
+    }
+  );
+
+
+/* =========================================================
+   44. COMMUNITY COMMENTS
+========================================================= */
+
+const commentInput =
+  document.getElementById(
+    "commentInput"
+  );
+
+const commentButton =
+  document.getElementById(
+    "commentButton"
+  );
+
+const commentsList =
+  document.getElementById(
+    "commentsList"
+  );
+
+
+const COMMENTS_KEY =
+  "nijokComments";
+
+
+function loadComments() {
+
+  try {
+
+    const saved =
+      localStorage.getItem(
+        COMMENTS_KEY
+      );
+
+
+    if (!saved) {
+
+      return [];
+
+    }
+
+
+    const data =
+      JSON.parse(saved);
+
+
+    return Array.isArray(data)
+      ? data
+      : [];
+
+  } catch (error) {
+
+    console.error(
+      "NIJOK comments error:",
+      error
+    );
+
+    return [];
+
+  }
+
+}
+
+
+function saveComments(
+  comments
+) {
+
+  try {
+
+    localStorage.setItem(
+      COMMENTS_KEY,
+      JSON.stringify(
+        comments
+      )
+    );
+
+  } catch (error) {
+
+    console.error(
+      "NIJOK comment save error:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   45. POST COMMENT
+========================================================= */
+
+function postComment() {
+
+  if (!commentInput) {
+
+    return;
+
+  }
+
+
+  const text =
+    commentInput.value.trim();
+
+
+  if (!text) {
+
+    commentInput.focus();
+
+    return;
+
+  }
+
+
+  const comments =
+    loadComments();
+
+
+  comments.unshift({
+
+    name:
+      player.name ||
+      "Food Explorer",
+
+    text:
+      text,
+
+    date:
+      new Date().toISOString()
+
+  });
+
+
+  saveComments(
+    comments
+  );
+
+
+  commentInput.value =
+    "";
+
+
+  renderComments();
+
+}
+
+
+/* =========================================================
+   46. RENDER COMMENTS
+========================================================= */
+
+function renderComments() {
+
+  if (!commentsList) {
+
+    return;
+
+  }
+
+
+  const comments =
+    loadComments();
+
+
+  commentsList.innerHTML =
+    "";
+
+
+  if (!comments.length) {
+
+    const welcome =
+      document.createElement(
+        "div"
+      );
+
+
+    welcome.className =
+      "comment-card";
+
+
+    welcome.innerHTML = `
+
+      <div class="comment-avatar">
+        🌱
+      </div>
+
+      <div>
+
+        <strong>
+          Food Explorer
+        </strong>
+
+        <span>
+          Welcome to NIJOK!
+        </span>
+
+      </div>
+
+    `;
+
+
+    commentsList.appendChild(
+      welcome
+    );
+
+    return;
+
+  }
+
+
+  comments
+    .slice(0, 20)
+    .forEach(
+      comment => {
+
+        const card =
+          document.createElement(
+            "div"
+          );
+
+
+        card.className =
+          "comment-card";
+
+
+        const avatar =
+          document.createElement(
+            "div"
+          );
+
+
+        avatar.className =
+          "comment-avatar";
+
+
+        avatar.textContent =
+          "🌱";
+
+
+        const content =
+          document.createElement(
+            "div"
+          );
+
+
+        const name =
+          document.createElement(
+            "strong"
+          );
+
+
+        name.textContent =
+          comment.name ||
+          "Food Explorer";
+
+
+        const text =
+          document.createElement(
+            "span"
+          );
+
+
+        text.textContent =
+          comment.text;
+
+
+        content.appendChild(
+          name
+        );
+
+        content.appendChild(
+          text
+        );
+
+
+        card.appendChild(
+          avatar
+        );
+
+        card.appendChild(
+          content
+        );
+
+
+        commentsList.appendChild(
+          card
+        );
+
+      }
+    );
+
+}
+
+
+if (commentButton) {
+
+  commentButton.addEventListener(
+    "click",
+    postComment
+  );
+
+}
+
+
+if (commentInput) {
+
+  commentInput.addEventListener(
+    "keydown",
+    event => {
+
+      if (
+        (
+          event.ctrlKey ||
+          event.metaKey
+        ) &&
+        event.key ===
+        "Enter"
+      ) {
+
+        postComment();
+
+      }
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   47. PROFILE PREVIEW CLICK
+========================================================= */
+
+const profilePreview =
+  document.querySelector(
+    ".profile-preview"
+  );
+
+
+if (profilePreview) {
+
+  profilePreview.style.cursor =
+    "pointer";
+
+
+  profilePreview.addEventListener(
+    "click",
+    showProfile
+  );
+
+}
+
+
+/* =========================================================
+   48. PROFILE BUTTON IN JOURNEY
+========================================================= */
+
+const profileButton =
+  document.getElementById(
+    "profileButton"
+  );
+
+
+if (profileButton) {
+
+  profileButton.addEventListener(
+    "click",
+    showProfile
+  );
+
+}
+
+
+/* =========================================================
+   49. ESCAPE KEY
+========================================================= */
+
+document.addEventListener(
+  "keydown",
+  event => {
+
+    if (
+      event.key !==
+      "Escape"
+    ) {
+
+      return;
+
+    }
+
+
+    if (
+      gameOverlay &&
+      gameOverlay.classList.contains(
+        "active"
+      )
+    ) {
+
+      closeGame();
+
+      return;
+
+    }
+
+
+    if (
+      loginModal &&
+      loginModal.classList.contains(
+        "active"
+      )
+    ) {
+
+      closeLoginModal();
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   50. RESET GAME RESULT BUTTON HANDLER
+   ---------------------------------------------------------
+   Part 3A temporarily changes onclick for result screens.
+   This makes sure normal gameplay works again afterwards.
+========================================================= */
+
+function resetNextButtonHandler() {
+
+  if (!nextQuestion) {
+
+    return;
+
+  }
+
+
+  nextQuestion.onclick =
+    goToNextQuestion;
+
+}
+
+
+/* =========================================================
+   51. REFRESH DAILY STATE
+========================================================= */
+
+function refreshDailyState() {
+
+  resetDailyProgress();
+
+  updateDashboard();
+
+}
+
+
+/* =========================================================
+   52. INITIALIZATION
+========================================================= */
+
+refreshDailyState();
+
+renderComments();
+
+startCountdown();
+
+updateLoginUI();
+
+
+/* =========================================================
+   53. DEVELOPMENT STATUS
+========================================================= */
+
+console.log(
+  "NIJOK 3.0 Part 3B loaded successfully 🌿"
+);
+
+console.log(
+  "Player:",
+  player
+);
+
+console.log(
+  "Game modes:",
+  Object.keys(gameInfo)
+);
