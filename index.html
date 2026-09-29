@@ -2,91 +2,131 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>NIJOK — Food Around the World</title>
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
 
   <meta
     name="description"
-    content="NIJOK — Explore food, culture, people and places through knowledge and play."
+    content="NIJOK Food Knowledge Game — Play, Learn and Discover Food."
   >
+
+  <meta name="theme-color" content="#075b45">
+
+  <title>NIJOK — Food Knowledge Game</title>
 
   <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-  <!-- ================= HEADER ================= -->
+  <!-- =========================================================
+       HEADER
+  ========================================================== -->
 
   <header class="site-header">
 
-    <a href="#home" class="brand" id="brandHome">
+    <div class="nav-container">
 
-      <span class="brand-mark">
-        <svg viewBox="0 0 100 100" aria-hidden="true">
-          <path d="M82 18C53 19 28 29 17 49C7 68 18 86 39 83C62 80 79 55 82 18Z"/>
-          <path d="M20 80C39 59 55 42 78 22"/>
-        </svg>
-      </span>
+      <a href="#home" class="brand">
+        <span class="brand-leaf">🍃</span>
 
-      <span class="brand-text">
-        <strong>NIJOK</strong>
-        <small>FOOD · CULTURE · PEOPLE · PLACES</small>
-      </span>
+        <span class="brand-text">
+          <strong>NIJOK</strong>
+          <small>Food · Culture · People · Places</small>
+        </span>
+      </a>
 
-    </a>
+      <nav class="main-nav">
 
+        <a href="#home" class="active">Home</a>
 
-    <nav class="navigation">
+        <a href="#passport">Food Passport</a>
 
-      <a href="#home">Home</a>
-      <a href="#challenges">Challenges</a>
-      <a href="#passport">Food Passport</a>
-      <a href="#museum">Food Museum</a>
-      <a href="#learn">Learn</a>
+        <a href="#museum">Food Museum</a>
 
-    </nav>
+        <a href="#map">Food Map</a>
 
+        <a href="#countries">Countries</a>
 
-    <button class="login-button" id="loginButton">
-      Login
-    </button>
+        <a href="#learn">Learn</a>
+
+        <a href="#about">About</a>
+
+      </nav>
+
+      <div class="nav-actions">
+
+        <button
+          class="search-button"
+          type="button"
+          aria-label="Search"
+        >
+          🔍
+          <span>Search food, region, country...</span>
+        </button>
+
+        <button
+          class="language-button"
+          type="button"
+        >
+          🌐 EN
+        </button>
+
+        <button
+          class="menu-button"
+          type="button"
+          aria-label="Open menu"
+        >
+          ☰
+        </button>
+
+      </div>
+
+    </div>
 
   </header>
 
 
-  <!-- ================= HOME ================= -->
+  <main id="home">
 
-  <main id="homePage">
+    <!-- =======================================================
+         HERO
+    ======================================================== -->
 
-    <section class="hero">
+    <section class="hero-section">
 
       <div class="hero-content">
 
-        <p class="eyebrow">
-          NIJOK · FOOD EXPLORER
-        </p>
+        <span class="eyebrow">
+          FOOD KNOWLEDGE GAME
+        </span>
 
         <h1>
-          Food Around<br>
-          the World
+          Play. Learn.<br>
+          Discover Food.
         </h1>
 
-        <p class="hero-description">
-          Explore food, discover cultures, learn fascinating facts
-          and challenge what you know.
+        <p>
+          Test your food knowledge, explore new cultures
+          and discover the stories behind what we eat.
+          NIJOK makes learning about food fun,
+          interactive and rewarding.
         </p>
 
-        <div class="hero-actions">
+        <div class="hero-buttons">
 
-          <button class="primary-button" id="startButton">
-            Start Exploring
+          <a href="#challenges" class="primary-button">
+            🌿 Start Playing
             <span>→</span>
-          </button>
+          </a>
 
-          <button class="secondary-button" id="howButton">
+          <a href="#how-it-works" class="secondary-button">
             How It Works
-          </button>
+            <span>▷</span>
+          </a>
 
         </div>
 
@@ -95,45 +135,29 @@
 
       <div class="hero-visual">
 
-        <div class="visual-orbit orbit-one"></div>
-        <div class="visual-orbit orbit-two"></div>
+        <div class="food-leaf-shape">
 
-        <div class="food-placeholder food-one">
-          <div class="food-art thali-art">
-            <span class="rice"></span>
-            <span class="curry"></span>
-            <span class="dal"></span>
-            <span class="vegetable"></span>
+          <div class="food-image food-image-one">
+            🍛
           </div>
-          <small>INDIA</small>
+
+          <div class="food-image food-image-two">
+            🌶️
+          </div>
+
+          <div class="food-image food-image-three">
+            🍣
+          </div>
+
+          <div class="food-image food-image-four">
+            🥘
+          </div>
+
         </div>
 
-        <div class="food-placeholder food-two">
-          <div class="food-art noodles-art">
-            <span></span>
-            <span></span>
-            <span></span>
-          </div>
-          <small>ASIA</small>
-        </div>
-
-        <div class="food-placeholder food-three">
-          <div class="food-art salad-art">
-            <span></span>
-            <span></span>
-            <span></span>
-            <span></span>
-          </div>
-          <small>FRESH</small>
-        </div>
-
-        <div class="food-placeholder food-four">
-          <div class="food-art fruit-art">
-            <span></span>
-            <span></span>
-            <span></span>
-          </div>
-          <small>NATURE</small>
+        <div class="hero-message">
+          Every Food Has<br>
+          a Story
         </div>
 
       </div>
@@ -141,48 +165,61 @@
     </section>
 
 
-    <!-- VALUES -->
+    <!-- =======================================================
+         FEATURE STRIP
+    ======================================================== -->
 
-    <section class="brand-values">
+    <section class="feature-strip">
 
-      <div class="value-card">
-        <span>01</span>
-        <h2>Explore</h2>
-        <p>Discover food from different places.</p>
+      <div class="feature-item">
+        <div class="feature-icon">🧠</div>
+        <h3>Fun & Engaging</h3>
+        <p>Learn through interactive quizzes.</p>
       </div>
 
-      <div class="value-card">
-        <span>02</span>
-        <h2>Learn</h2>
-        <p>Understand the stories behind food.</p>
+      <div class="feature-item">
+        <div class="feature-icon">🌎</div>
+        <h3>Global & Local</h3>
+        <p>Explore food from everywhere.</p>
       </div>
 
-      <div class="value-card">
-        <span>03</span>
-        <h2>Play</h2>
-        <p>Turn knowledge into an experience.</p>
+      <div class="feature-item">
+        <div class="feature-icon">📖</div>
+        <h3>Build Knowledge</h3>
+        <p>History, culture, ingredients and more.</p>
       </div>
 
-      <div class="value-card">
-        <span>04</span>
-        <h2>Share</h2>
-        <p>Connect with a global food community.</p>
+      <div class="feature-item">
+        <div class="feature-icon">🏆</div>
+        <h3>Earn Rewards</h3>
+        <p>Collect points, badges and levels.</p>
+      </div>
+
+      <div class="feature-item">
+        <div class="feature-icon">👥</div>
+        <h3>Compete & Share</h3>
+        <p>Challenge friends and share your journey.</p>
       </div>
 
     </section>
 
 
-    <!-- ================= CHALLENGES ================= -->
+    <!-- =======================================================
+         CHALLENGES
+    ======================================================== -->
 
-    <section class="challenges" id="challenges">
+    <section
+      class="challenges"
+      id="challenges"
+    >
 
       <div class="section-heading">
 
         <div>
 
-          <p class="eyebrow">
-            CHALLENGE MODE
-          </p>
+          <span class="eyebrow">
+            GAME MODES
+          </span>
 
           <h2>
             Choose Your<br>
@@ -192,8 +229,8 @@
         </div>
 
         <p>
-          Pick a challenge to begin. Your questions appear
-          only after you enter the challenge.
+          Different ways to play.
+          Same goal — become a curious Food Explorer.
         </p>
 
       </div>
@@ -201,280 +238,868 @@
 
       <div class="challenge-grid">
 
+        <!-- Guess Food -->
 
-        <button class="challenge-card" data-challenge="guess">
+        <article class="challenge-card guess-card">
 
-          <span class="challenge-index">01</span>
+          <div class="challenge-art">
+            📍
+          </div>
 
-          <span class="challenge-symbol">◉</span>
+          <div class="challenge-content">
 
-          <h3>Guess the Food</h3>
+            <h3>Guess the Food</h3>
 
-          <p>
-            Identify food from beautiful food images.
-          </p>
+            <p>
+              Identify the dish from the image
+              and discover where it comes from.
+            </p>
 
-          <small>
-            10 questions / day →
-          </small>
+            <div class="challenge-limit">
+              <strong>10</strong>
+              <span>questions / day</span>
+            </div>
 
-        </button>
+            <button
+              class="challenge-button"
+              data-game="guess"
+              type="button"
+            >
+              Play Now →
+            </button>
 
+          </div>
 
-        <button class="challenge-card" data-challenge="quiz">
-
-          <span class="challenge-index">02</span>
-
-          <span class="challenge-symbol">?</span>
-
-          <h3>Food Quiz</h3>
-
-          <p>
-            Test your knowledge about food and culture.
-          </p>
-
-          <small>
-            20 questions / day →
-          </small>
-
-        </button>
+        </article>
 
 
-        <button class="challenge-card" data-challenge="match">
+        <!-- Food Quiz -->
 
-          <span class="challenge-index">03</span>
+        <article class="challenge-card quiz-card">
 
-          <span class="challenge-symbol">✦</span>
+          <div class="challenge-art">
+            ❓
+          </div>
 
-          <h3>Match the Pair</h3>
+          <div class="challenge-content">
 
-          <p>
-            Match foods with places, ingredients and stories.
-          </p>
+            <h3>Food Quiz</h3>
 
-          <small>
-            5 rounds / day →
-          </small>
+            <p>
+              Test your knowledge with questions
+              about food, culture and ingredients.
+            </p>
 
-        </button>
+            <div class="challenge-limit">
+              <strong>20</strong>
+              <span>questions / day</span>
+            </div>
 
+            <button
+              class="challenge-button"
+              data-game="quiz"
+              type="button"
+            >
+              Play Now →
+            </button>
 
-        <button class="challenge-card" data-challenge="time">
+          </div>
 
-          <span class="challenge-index">04</span>
-
-          <span class="challenge-symbol">◷</span>
-
-          <h3>Time Challenge</h3>
-
-          <p>
-            Think quickly before the clock runs out.
-          </p>
-
-          <small>
-            10 questions / day →
-          </small>
-
-        </button>
+        </article>
 
 
-        <button class="challenge-card" data-challenge="puzzle">
+        <!-- Match Pair -->
 
-          <span class="challenge-index">05</span>
+        <article class="challenge-card match-card">
 
-          <span class="challenge-symbol">◇</span>
+          <div class="challenge-art">
+            🧩
+          </div>
 
-          <h3>Puzzle Mode</h3>
+          <div class="challenge-content">
 
-          <p>
-            Think, connect and discover something new.
-          </p>
+            <h3>Match the Pair</h3>
 
-          <small>
-            10 puzzles / day →
-          </small>
+            <p>
+              Match food with its region,
+              ingredient, culture or story.
+            </p>
 
-        </button>
+            <div class="challenge-limit">
+              <strong>5</strong>
+              <span>rounds / day</span>
+            </div>
 
+            <button
+              class="challenge-button"
+              data-game="match"
+              type="button"
+            >
+              Play Now →
+            </button>
+
+          </div>
+
+        </article>
+
+
+        <!-- Time Challenge -->
+
+        <article class="challenge-card time-card">
+
+          <div class="challenge-art">
+            🏆
+          </div>
+
+          <div class="challenge-content">
+
+            <h3>Time Challenge</h3>
+
+            <p>
+              Answer quickly, think faster
+              and score more points.
+            </p>
+
+            <div class="challenge-limit">
+              <strong>10</strong>
+              <span>questions / day</span>
+            </div>
+
+            <button
+              class="challenge-button"
+              data-game="time"
+              type="button"
+            >
+              Play Now →
+            </button>
+
+          </div>
+
+        </article>
 
       </div>
 
     </section>
 
 
-    <!-- ================= FUTURE SECTIONS ================= -->
+    <!-- =======================================================
+         TODAY'S CHALLENGE
+    ======================================================== -->
 
-    <section class="future-section" id="passport">
+    <section class="today-section">
 
-      <p class="eyebrow">YOUR JOURNEY</p>
+      <div class="today-card">
 
-      <h2>Food Passport</h2>
+        <div class="today-content">
+
+          <span class="eyebrow">
+            🌿 TODAY'S CHALLENGE
+          </span>
+
+          <h2>
+            Which country is the
+            origin of Sushi?
+          </h2>
+
+          <div class="answer-grid">
+
+            <button type="button">
+              A. China
+            </button>
+
+            <button
+              type="button"
+              class="correct-answer"
+            >
+              B. Japan ✓
+            </button>
+
+            <button type="button">
+              C. Korea
+            </button>
+
+            <button type="button">
+              D. Thailand
+            </button>
+
+          </div>
+
+          <div class="today-note">
+            Think · Explore · Learn
+          </div>
+
+        </div>
+
+
+        <div class="today-food">
+          🍣
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =======================================================
+         FOOD JOURNEY + PERSONAL SCORE
+    ======================================================== -->
+
+    <section class="journey-section">
+
+      <div class="journey-card">
+
+        <div class="journey-heading">
+          <span>🍃</span>
+
+          <div>
+            <span class="eyebrow">YOUR FOOD JOURNEY</span>
+            <h2>Food Explorer</h2>
+          </div>
+        </div>
+
+
+        <div class="profile-preview">
+
+          <div class="avatar">
+            👤
+          </div>
+
+          <div>
+            <h3 id="profileName">
+              Guest Explorer
+            </h3>
+
+            <p>
+              Food Explorer
+            </p>
+          </div>
+
+        </div>
+
+
+        <div class="journey-stats">
+
+          <div>
+            <strong id="gamesPlayed">0</strong>
+            <span>Games Played</span>
+          </div>
+
+          <div>
+            <strong id="correctAnswers">0</strong>
+            <span>Correct Answers</span>
+          </div>
+
+          <div>
+            <strong id="badgesEarned">0</strong>
+            <span>Badges Earned</span>
+          </div>
+
+        </div>
+
+
+        <button
+          class="primary-button"
+          id="profileButton"
+          type="button"
+        >
+          View Profile →
+        </button>
+
+      </div>
+
+
+      <!-- Daily Challenge -->
+
+      <div class="daily-card">
+
+        <div class="daily-icon">
+          📅
+        </div>
+
+        <span class="eyebrow">
+          DAILY CHALLENGE
+        </span>
+
+        <h2>
+          New questions every day.
+        </h2>
+
+        <p>
+          Play regularly, build your streak
+          and keep discovering food.
+        </p>
+
+        <div class="countdown">
+
+          <div>
+            <strong id="hours">23</strong>
+            <span>Hours</span>
+          </div>
+
+          <div>
+            <strong id="minutes">59</strong>
+            <span>Minutes</span>
+          </div>
+
+          <div>
+            <strong id="seconds">59</strong>
+            <span>Seconds</span>
+          </div>
+
+        </div>
+
+        <button
+          class="secondary-button"
+          type="button"
+          data-game="daily"
+        >
+          Play Daily Challenge →
+        </button>
+
+      </div>
+
+    </section>
+
+
+    <!-- =======================================================
+         SCORECARD
+    ======================================================== -->
+
+    <section
+      class="score-section"
+      id="scorecard"
+    >
+
+      <div class="section-heading">
+
+        <div>
+          <span class="eyebrow">YOUR SCORECARD</span>
+
+          <h2>
+            Your Food<br>
+            Explorer Score
+          </h2>
+        </div>
+
+        <p>
+          Your progress is personal.
+          Your achievements are yours to build.
+        </p>
+
+      </div>
+
+
+      <div class="score-layout">
+
+        <div class="score-main-card">
+
+          <div class="score-circle">
+            <span id="totalScore">0</span>
+            <small>POINTS</small>
+          </div>
+
+          <div class="score-details">
+
+            <h3>Keep Exploring</h3>
+
+            <p>
+              Complete daily challenges
+              to increase your score.
+            </p>
+
+            <div class="progress-bar">
+              <span
+                id="scoreProgress"
+                style="width: 0%;"
+              ></span>
+            </div>
+
+            <small>
+              Level <strong id="userLevel">1</strong>
+            </small>
+
+          </div>
+
+        </div>
+
+
+        <!-- Top 10 -->
+
+        <div class="leaderboard-card">
+
+          <div class="leaderboard-heading">
+            <div>
+              <span class="eyebrow">
+                COMMUNITY
+              </span>
+
+              <h3>
+                Top Food Explorers
+              </h3>
+            </div>
+
+            <span>🏆</span>
+          </div>
+
+
+          <div class="leaderboard-list">
+
+            <div class="leader-row">
+              <span>1</span>
+              <strong>FoodExplorer</strong>
+              <b>0</b>
+            </div>
+
+            <div class="leader-row">
+              <span>2</span>
+              <strong>CuriousChef</strong>
+              <b>0</b>
+            </div>
+
+            <div class="leader-row">
+              <span>3</span>
+              <strong>FoodTraveller</strong>
+              <b>0</b>
+            </div>
+
+            <div class="leader-row">
+              <span>4</span>
+              <strong>TasteHunter</strong>
+              <b>0</b>
+            </div>
+
+            <div class="leader-row">
+              <span>5</span>
+              <strong>SpiceExplorer</strong>
+              <b>0</b>
+            </div>
+
+            <div class="leader-row">
+              <span>6</span>
+              <strong>FoodLearner</strong>
+              <b>0</b>
+            </div>
+
+            <div class="leader-row">
+              <span>7</span>
+              <strong>CuriousMind</strong>
+              <b>0</b>
+            </div>
+
+            <div class="leader-row">
+              <span>8</span>
+              <strong>GlobalFoodie</strong>
+              <b>0</b>
+            </div>
+
+            <div class="leader-row">
+              <span>9</span>
+              <strong>FoodStory</strong>
+              <b>0</b>
+            </div>
+
+            <div class="leader-row">
+              <span>10</span>
+              <strong>FoodSeeker</strong>
+              <b>0</b>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =======================================================
+         COMMUNITY
+    ======================================================== -->
+
+    <section
+      class="community-section"
+      id="community"
+    >
+
+      <div class="community-header">
+
+        <span class="eyebrow">
+          FOOD COMMUNITY
+        </span>
+
+        <h2>
+          Think. Share. Discover.
+        </h2>
+
+        <p>
+          After completing a challenge,
+          share your thoughts and learn from
+          other Food Explorers.
+        </p>
+
+      </div>
+
+
+      <div class="comment-box">
+
+        <div class="comment-user">
+          👤
+        </div>
+
+        <div class="comment-form">
+
+          <textarea
+            id="commentInput"
+            placeholder="Share your food thought..."
+            rows="3"
+          ></textarea>
+
+          <button
+            type="button"
+            id="commentButton"
+            class="primary-button"
+          >
+            Post Comment →
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <div
+        class="comments-list"
+        id="commentsList"
+      >
+
+        <div class="comment-card">
+
+          <div class="comment-avatar">
+            🌱
+          </div>
+
+          <div>
+
+            <strong>Food Explorer</strong>
+
+            <span>
+              Welcome to NIJOK!
+            </span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =======================================================
+         KNOWLEDGE
+    ======================================================== -->
+
+    <section
+      class="knowledge-section"
+      id="learn"
+    >
+
+      <div class="knowledge-content">
+
+        <span class="eyebrow">
+          SMALL BITES OF KNOWLEDGE
+        </span>
+
+        <h2>
+          Learn Something.<br>
+          Discover Something.
+        </h2>
+
+        <p>
+          Food connects people, places, history,
+          culture and everyday life.
+        </p>
+
+        <button
+          class="primary-button"
+          type="button"
+        >
+          Explore Knowledge →
+        </button>
+
+      </div>
+
+      <div class="knowledge-art">
+        🌿
+      </div>
+
+    </section>
+
+
+    <!-- =======================================================
+         FUTURE SECTIONS
+    ======================================================== -->
+
+    <section
+      class="future-section"
+      id="passport"
+    >
+
+      <span class="eyebrow">
+        COMING TO NIJOK
+      </span>
+
+      <h2>
+        Your Food Passport
+      </h2>
 
       <p>
-        Your personal journey through food, culture and places.
+        Discover countries, regional foods,
+        ingredients and food stories.
+        Your journey will grow with you.
+      </p>
+
+      <div class="future-grid">
+
+        <article>
+          🌎
+          <h3>Food Map</h3>
+          <p>Explore food by place.</p>
+        </article>
+
+        <article>
+          🏛️
+          <h3>Food Museum</h3>
+          <p>Discover food history.</p>
+        </article>
+
+        <article>
+          🛂
+          <h3>Food Passport</h3>
+          <p>Collect your discoveries.</p>
+        </article>
+
+        <article>
+          📚
+          <h3>Food Knowledge</h3>
+          <p>Keep learning every day.</p>
+        </article>
+
+      </div>
+
+    </section>
+
+
+    <section
+      class="simple-section"
+      id="museum"
+    >
+
+      <span class="eyebrow">FOOD MUSEUM</span>
+
+      <h2>
+        Stories Behind What We Eat
+      </h2>
+
+      <p>
+        From traditional dishes to modern food culture,
+        NIJOK will bring food stories together.
       </p>
 
     </section>
 
 
-    <section class="future-section" id="museum">
+    <section
+      class="simple-section"
+      id="map"
+    >
 
-      <p class="eyebrow">DISCOVER</p>
+      <span class="eyebrow">FOOD MAP</span>
 
-      <h2>Food Museum</h2>
+      <h2>
+        Explore Food Around the World
+      </h2>
 
       <p>
-        Explore ingredients, traditions and food stories.
+        India first. Then the world.
       </p>
 
     </section>
 
 
-    <section class="future-section" id="learn">
+    <section
+      class="simple-section"
+      id="countries"
+    >
 
-      <p class="eyebrow">KNOWLEDGE</p>
+      <span class="eyebrow">COUNTRIES</span>
 
-      <h2>Learn With NIJOK</h2>
+      <h2>
+        One World. Many Food Stories.
+      </h2>
 
       <p>
-        Simple food knowledge designed for everyone.
+        Explore cuisines, ingredients,
+        traditions and cultures.
       </p>
 
     </section>
+
+
+    <section
+      class="simple-section"
+      id="about"
+    >
+
+      <span class="eyebrow">ABOUT NIJOK</span>
+
+      <h2>
+        Food. Culture. People. Places.
+      </h2>
+
+      <p>
+        NIJOK is being built as a global food
+        knowledge platform where curiosity,
+        learning and food come together.
+      </p>
+
+    </section>
+
 
   </main>
 
 
-  <!-- ================= CHALLENGE PAGE ================= -->
+  <!-- =========================================================
+       FOOTER
+  ========================================================== -->
 
-  <section class="challenge-page hidden" id="challengePage">
+  <footer class="site-footer">
 
-    <div class="challenge-topbar">
+    <div class="footer-main">
 
-      <button class="back-button" id="backButton">
-        ← Challenges
-      </button>
+      <div class="footer-brand">
 
-      <span class="daily-label">
-        DAILY CHALLENGE
+        <div class="brand">
+          <span class="brand-leaf">🍃</span>
+
+          <span class="brand-text">
+            <strong>NIJOK</strong>
+            <small>Food · Culture · People · Places</small>
+          </span>
+        </div>
+
+        <p>
+          Good Food. Better Questions.
+          A Richer World.
+        </p>
+
+      </div>
+
+
+      <div class="footer-links">
+
+        <a href="#home">Home</a>
+        <a href="#passport">Food Passport</a>
+        <a href="#museum">Food Museum</a>
+        <a href="#map">Food Map</a>
+        <a href="#countries">Countries</a>
+        <a href="#learn">Learn</a>
+        <a href="#about">About</a>
+
+      </div>
+
+
+      <div class="footer-social">
+
+        <button type="button" aria-label="Instagram">
+          ◎
+        </button>
+
+        <button type="button" aria-label="YouTube">
+          ▶
+        </button>
+
+                <button type="button" aria-label="Facebook">
+          f
+        </button>
+
+        <button type="button" aria-label="Global">
+          🌐
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <div class="footer-bottom">
+
+      <span>
+        © 2026 NIJOK. All rights reserved.
+      </span>
+
+      <span>
+        Built for curious Food Explorers.
       </span>
 
     </div>
 
-
-    <div class="challenge-intro">
-
-      <p class="eyebrow" id="challengeEyebrow">
-        NIJOK CHALLENGE
-      </p>
-
-      <h2 id="challengeTitle">
-        Guess the Food
-      </h2>
-
-      <p id="challengeDescription">
-        Identify food from beautiful food images.
-      </p>
-
-    </div>
+  </footer>
 
 
-    <div class="challenge-info">
+  <!-- =========================================================
+       GAME OVERLAY
+  ========================================================== -->
 
-      <div class="info-box">
+  <div
+    id="gameOverlay"
+    class="game-overlay"
+    aria-hidden="true"
+  >
 
-        <span>DAILY LIMIT</span>
+    <div class="game-modal">
 
-        <strong id="challengeLimit">
-          10
-        </strong>
-
-      </div>
-
-
-      <div class="info-box">
-
-        <span>COMPLETED</span>
-
-        <strong id="challengeCompleted">
-          0
-        </strong>
-
-      </div>
-
-
-      <div class="info-box">
-
-        <span>REMAINING</span>
-
-        <strong id="challengeRemaining">
-          10
-        </strong>
-
-      </div>
-
-    </div>
-
-
-    <div class="challenge-start-card">
-
-      <div class="start-icon" id="startIcon">
-        ◉
-      </div>
-
-      <h3 id="startHeading">
-        Ready to play?
-      </h3>
-
-      <p id="startMessage">
-        Your daily questions are waiting.
-      </p>
-
-      <button class="primary-button" id="beginChallengeButton">
-        Start Challenge →
-      </button>
-
-    </div>
-
-
-    <div class="daily-note">
-
-      <strong>100-Day Journey</strong>
-
-      <p>
-        Your progress will be saved as you complete each daily challenge.
-      </p>
-
-    </div>
-
-  </section>
-
-
-  <!-- ================= HOW IT WORKS ================= -->
-
-  <div class="modal hidden" id="howModal">
-
-    <div class="modal-card">
-
-      <button class="modal-close" id="closeHow">
+      <button
+        id="closeGame"
+        class="close-game"
+        type="button"
+        aria-label="Close game"
+      >
         ×
       </button>
 
-      <p class="eyebrow">
-        HOW NIJOK WORKS
-      </p>
+      <span
+        class="eyebrow"
+        id="gameModeLabel"
+      >
+        NIJOK CHALLENGE
+      </span>
 
-      <h2>
-        Learn. Play. Discover.
+      <h2 id="gameTitle">
+        Ready to Play?
       </h2>
 
-      <p>
-        Choose a challenge, answer questions, earn your score
-        and build your personal food journey.
+      <p id="gameDescription">
+        Your challenge will appear here.
       </p>
 
-      <button class="primary-button" id="modalChallengeButton">
-        Choose a Challenge →
+      <div
+        id="gameQuestion"
+        class="game-question"
+      ></div>
+
+      <div
+        id="gameAnswers"
+        class="game-answers"
+      ></div>
+
+      <button
+        id="nextQuestion"
+        class="primary-button"
+        type="button"
+      >
+        Next Question →
       </button>
 
     </div>
@@ -482,22 +1107,73 @@
   </div>
 
 
-  <!-- ================= FOOTER ================= -->
+  <!-- =========================================================
+       LOGIN / CREATE ACCOUNT
+  ========================================================== -->
 
-  <footer>
+  <div
+    id="loginModal"
+    class="modal-overlay"
+    aria-hidden="true"
+  >
 
-    <div class="footer-brand">
+    <div class="login-modal">
 
-      <span>NIJOK</span>
+      <button
+        class="close-modal"
+        type="button"
+        aria-label="Close"
+      >
+        ×
+      </button>
+
+      <span class="eyebrow">
+        WELCOME TO NIJOK
+      </span>
+
+      <h2>
+        Create Your<br>
+        Food Journey
+      </h2>
 
       <p>
-        Fact first, you decide.
+        Save your score, progress,
+        streaks and achievements.
       </p>
+
+      <input
+        id="loginName"
+        type="text"
+        placeholder="Your name"
+      >
+
+      <input
+        id="loginEmail"
+        type="email"
+        placeholder="Email address"
+      >
+
+      <button
+        id="loginButton"
+        class="primary-button"
+        type="button"
+      >
+        Create Account →
+      </button>
+
+      <small>
+        Your account system will be connected
+        in the next development step.
+      </small>
 
     </div>
 
-  </footer>
+  </div>
 
+
+  <!-- =========================================================
+       JAVASCRIPT
+  ========================================================== -->
 
   <script src="script.js"></script>
 
