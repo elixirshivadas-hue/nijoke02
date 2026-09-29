@@ -1,536 +1,1275 @@
-/* =========================================
-   NIJOK — CHALLENGE SYSTEM
-   STEP D
-========================================= */
+/* =========================================================
+   NIJOK — GAME ENGINE FOUNDATION
+   Step 3
+   ========================================================= */
 
+"use strict";
 
-const challengeData = {
+/* =========================================================
+   NIJOK SETTINGS
+========================================================= */
 
-  guess: {
-    title: "Guess the Food",
-    description: "Identify food from beautiful food images.",
-    limit: 10,
-    symbol: "◉",
-    eyebrow: "GUESS THE FOOD"
+const NIJOK = {
+  days: 100,
+
+  limits: {
+    quiz: 20,
+    guess: 10,
+    match: 5,
+    time: 10,
+    puzzle: 10
   },
 
-  quiz: {
-    title: "Food Quiz",
-    description: "Test your knowledge about food and culture.",
-    limit: 20,
-    symbol: "?",
-    eyebrow: "FOOD QUIZ"
-  },
-
-  match: {
-    title: "Match the Pair",
-    description: "Match foods with places, ingredients and stories.",
-    limit: 5,
-    symbol: "✦",
-    eyebrow: "MATCH THE PAIR"
-  },
-
-  time: {
-    title: "Time Challenge",
-    description: "Think quickly before the clock runs out.",
-    limit: 10,
-    symbol: "◷",
-    eyebrow: "TIME CHALLENGE"
-  },
-
-  puzzle: {
-    title: "Puzzle Mode",
-    description: "Think, connect and discover something new.",
-    limit: 10,
-    symbol: "◇",
-    eyebrow: "PUZZLE MODE"
+  score: {
+    quiz: 10,
+    guess: 10,
+    match: 15,
+    time: 20,
+    puzzle: 15
   }
-
 };
 
 
-/* =========================================
+/* =========================================================
    STORAGE
-========================================= */
+========================================================= */
 
-const STORAGE_KEY = "nijok_daily_progress";
+const STORAGE_KEY = "nijokPlayer";
+
+const defaultPlayer = {
+  name: "Guest Explorer",
+  email: "",
+
+  totalScore: 0,
+  gamesPlayed: 0,
+  correctAnswers: 0,
+
+  level: 1,
+  streak: 0,
+
+  today: {
+    date: "",
+    quiz: 0,
+    guess: 0,
+    match: 0,
+    time: 0,
+    puzzle: 0
+  }
+};
 
 
-function getToday() {
+function loadPlayer() {
 
-  const date = new Date();
+  try {
 
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
+    const saved = localStorage.getItem(STORAGE_KEY);
+
+    if (!saved) {
+      return structuredClone(defaultPlayer);
+    }
+
+    const player = JSON.parse(saved);
+
+    return {
+      ...structuredClone(defaultPlayer),
+      ...player,
+      today: {
+        ...structuredClone(defaultPlayer.today),
+        ...(player.today || {})
+      }
+    };
+
+  } catch (error) {
+
+    console.error("NIJOK storage error:", error);
+
+    return structuredClone(defaultPlayer);
+  }
+}
+
+
+let player = loadPlayer();
+
+
+function savePlayer() {
+
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify(player)
+  );
+}
+
+
+/* =========================================================
+   DATE SYSTEM
+========================================================= */
+
+function getTodayKey() {
+
+  const now = new Date();
+
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
 }
 
 
-function createEmptyProgress() {
+function resetDailyProgressIfNeeded() {
 
-  return {
-    date: getToday(),
+  const today = getTodayKey();
 
-    guess: 0,
-    quiz: 0,
-    match: 0,
-    time: 0,
-    puzzle: 0
-  };
+  if (player.today.date !== today) {
 
+    player.today = {
+      date: today,
+      quiz: 0,
+      guess: 0,
+      match: 0,
+      time: 0,
+      puzzle: 0
+    };
+
+    savePlayer();
+  }
 }
 
 
-function getProgress() {
+/* =========================================================
+   ELEMENTS
+========================================================= */
 
-  const saved = localStorage.getItem(STORAGE_KEY);
+const gameOverlay =
+  document.getElementById("gameOverlay");
 
-  if (!saved) {
+const closeGameButton =
+  document.getElementById("closeGame");
 
-    const fresh = createEmptyProgress();
+const gameModeLabel =
+  document.getElementById("gameModeLabel");
 
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(fresh)
-    );
+const gameTitle =
+  document.getElementById("gameTitle");
 
-    return fresh;
+const gameDescription =
+  document.getElementById("gameDescription");
+
+const gameQuestion =
+  document.getElementById("gameQuestion");
+
+const gameAnswers =
+  document.getElementById("gameAnswers");
+
+const nextQuestion =
+  document.getElementById("nextQuestion");
+
+const profileButton =
+  document.getElementById("profileButton");
+
+const loginModal =
+  document.getElementById("loginModal");
+
+const closeModal =
+  document.querySelector(".close-modal");
+
+const loginButton =
+  document.getElementById("loginButton");
+
+const loginName =
+  document.getElementById("loginName");
+
+const loginEmail =
+  document.getElementById("loginEmail");
+
+const commentInput =
+  document.getElementById("commentInput");
+
+const commentButton =
+  document.getElementById("commentButton");
+
+const commentsList =
+  document.getElementById("commentsList");
+
+
+/* =========================================================
+   GAME STATE
+========================================================= */
+
+const gameState = {
+  active: false,
+  mode: "",
+  questionNumber: 0,
+  score: 0,
+  answered: false
+};
+
+
+/* =========================================================
+   GAME INFORMATION
+========================================================= */
+
+const gameInfo = {
+
+  quiz: {
+    label: "FOOD QUIZ",
+    title: "Food Quiz",
+    description:
+      "Test your knowledge about food, ingredients, culture and traditions."
+  },
+
+  guess: {
+    label: "GUESS THE FOOD",
+    title: "Guess the Food",
+    description:
+      "Look carefully and identify the food."
+  },
+
+  match: {
+    label: "MATCH THE PAIR",
+    title: "Match the Pair",
+    description:
+      "Connect the correct food with its matching pair."
+  },
+
+  time: {
+    label: "TIME CHALLENGE",
+    title: "Time Challenge",
+    description:
+      "Think fast. Answer quickly. Score more."
+  },
+
+  puzzle: {
+    label: "FOOD PUZZLE",
+    title: "Food Puzzle",
+    description:
+      "Solve the puzzle and discover the answer."
+  },
+
+  daily: {
+    label: "DAILY CHALLENGE",
+    title: "Today's Food Challenge",
+    description:
+      "A fresh food question for today."
+  }
+};
+
+
+/* =========================================================
+   SAMPLE QUESTIONS
+   FOUNDATION ONLY
+   ========================================================= */
+
+const sampleQuestions = {
+
+  quiz: [
+    {
+      question: "Which fruit is traditionally associated with Kashmir?",
+      answers: [
+        "Apple",
+        "Banana",
+        "Pineapple",
+        "Papaya"
+      ],
+      correct: 0
+    },
+
+    {
+      question: "Which ingredient gives turmeric its yellow colour?",
+      answers: [
+        "Curcumin",
+        "Caffeine",
+        "Lycopene",
+        "Pectin"
+      ],
+      correct: 0
+    },
+
+    {
+      question: "Which grain is commonly used to make idli?",
+      answers: [
+        "Rice",
+        "Corn",
+        "Barley",
+        "Oats"
+      ],
+      correct: 0
+    }
+  ],
+
+
+  guess: [
+    {
+      question: "🍛 Which food is shown?",
+      answers: [
+        "Biryani",
+        "Pizza",
+        "Sushi",
+        "Pasta"
+      ],
+      correct: 0
+    },
+
+    {
+      question: "🥭 Which fruit is this?",
+      answers: [
+        "Mango",
+        "Apple",
+        "Orange",
+        "Pear"
+      ],
+      correct: 0
+    }
+  ],
+
+
+  match: [
+    {
+      question: "Match the food with its famous association.",
+      answers: [
+        "Darjeeling — Tea",
+        "Kashmir — Coconut",
+        "Kerala — Saffron",
+        "Punjab — Sushi"
+      ],
+      correct: 0
+    }
+  ],
+
+
+  time: [
+    {
+      question: "Which one is a spice?",
+      answers: [
+        "Turmeric",
+        "Apple",
+        "Rice",
+        "Milk"
+      ],
+      correct: 0
+    },
+
+    {
+      question: "Which one is a fruit?",
+      answers: [
+        "Mango",
+        "Salt",
+        "Rice",
+        "Lentil"
+      ],
+      correct: 0
+    }
+  ],
+
+
+  puzzle: [
+    {
+      question:
+        "I am yellow, often used in curries and known as a spice. What am I?",
+      answers: [
+        "Turmeric",
+        "Sugar",
+        "Rice",
+        "Tea"
+      ],
+      correct: 0
+    }
+  ],
+
+
+  daily: [
+    {
+      question:
+        "Which country is traditionally associated with sushi?",
+      answers: [
+        "Japan",
+        "India",
+        "Mexico",
+        "Italy"
+      ],
+      correct: 0
+    }
+  ]
+
+};
+
+
+/* =========================================================
+   OPEN GAME
+========================================================= */
+
+function openGame(mode) {
+
+  resetDailyProgressIfNeeded();
+
+  if (!gameInfo[mode]) {
+    console.warn("Unknown NIJOK game:", mode);
+    return;
   }
 
+  const limit = getDailyLimit(mode);
 
-  try {
+  if (mode !== "daily" && getPlayedToday(mode) >= limit) {
 
-    const progress = JSON.parse(saved);
+    showLimitMessage(mode, limit);
+
+    return;
+  }
+
+  gameState.active = true;
+  gameState.mode = mode;
+  gameState.questionNumber = 0;
+  gameState.score = 0;
+  gameState.answered = false;
+
+  const info = gameInfo[mode];
+
+  gameModeLabel.textContent = info.label;
+  gameTitle.textContent = info.title;
+  gameDescription.textContent = info.description;
+
+  gameOverlay.classList.add("active");
+  gameOverlay.setAttribute("aria-hidden", "false");
+
+  document.body.style.overflow = "hidden";
+
+  showQuestion();
+}
 
 
-    if (progress.date !== getToday()) {
+/* =========================================================
+   CLOSE GAME
+========================================================= */
 
-      const fresh = createEmptyProgress();
+function closeGame() {
 
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(fresh)
+  gameState.active = false;
+
+  gameOverlay.classList.remove("active");
+  gameOverlay.setAttribute("aria-hidden", "true");
+
+  document.body.style.overflow = "";
+
+  updateDashboard();
+}
+
+
+if (closeGameButton) {
+  closeGameButton.addEventListener(
+    "click",
+    closeGame
+  );
+}
+
+
+if (gameOverlay) {
+
+  gameOverlay.addEventListener(
+    "click",
+    function(event) {
+
+      if (event.target === gameOverlay) {
+        closeGame();
+      }
+
+    }
+  );
+}
+
+
+/* =========================================================
+   SHOW QUESTION
+========================================================= */
+
+function showQuestion() {
+
+  const mode = gameState.mode;
+
+  const questions =
+    sampleQuestions[mode] || [];
+
+  if (!questions.length) {
+    showComingSoon();
+    return;
+  }
+
+  const question =
+    questions[
+      gameState.questionNumber %
+      questions.length
+    ];
+
+  gameState.answered = false;
+
+  gameQuestion.innerHTML = `
+    <div class="question-number">
+      Question ${gameState.questionNumber + 1}
+    </div>
+
+    <h3>
+      ${escapeHTML(question.question)}
+    </h3>
+  `;
+
+  gameAnswers.innerHTML = "";
+
+  question.answers.forEach(
+    (answer, index) => {
+
+      const button =
+        document.createElement("button");
+
+      button.type = "button";
+
+      button.className = "answer-button";
+
+      button.textContent = answer;
+
+      button.addEventListener(
+        "click",
+        function() {
+
+          selectAnswer(
+            button,
+            index,
+            question.correct
+          );
+
+        }
       );
 
-      return fresh;
+      gameAnswers.appendChild(button);
+
     }
+  );
 
-
-    return progress;
-
-  } catch (error) {
-
-    const fresh = createEmptyProgress();
-
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(fresh)
-    );
-
-    return fresh;
-  }
-
+  nextQuestion.style.display = "none";
 }
 
 
-function saveProgress(progress) {
+/* =========================================================
+   ANSWER
+========================================================= */
 
-  localStorage.setItem(
-    STORAGE_KEY,
-    JSON.stringify(progress)
+function selectAnswer(
+  button,
+  selectedIndex,
+  correctIndex
+) {
+
+  if (gameState.answered) {
+    return;
+  }
+
+  gameState.answered = true;
+
+  const buttons =
+    gameAnswers.querySelectorAll(
+      ".answer-button"
+    );
+
+  buttons.forEach(
+    (item, index) => {
+
+      item.disabled = true;
+
+      if (index === correctIndex) {
+        item.classList.add("correct");
+      }
+
+    }
+  );
+
+
+  if (selectedIndex === correctIndex) {
+
+    button.classList.add("correct");
+
+    gameState.score +=
+      NIJOK.score[
+        gameState.mode
+      ] || 10;
+
+    player.correctAnswers++;
+
+  } else {
+
+    button.classList.add("wrong");
+
+  }
+
+
+  player.gamesPlayed++;
+
+  increaseDailyCount(
+    gameState.mode
+  );
+
+  savePlayer();
+
+  nextQuestion.style.display =
+    "inline-flex";
+
+  nextQuestion.textContent =
+    "Next Question →";
+
+  updateDashboard();
+}
+
+
+/* =========================================================
+   NEXT QUESTION
+========================================================= */
+
+if (nextQuestion) {
+
+  nextQuestion.addEventListener(
+    "click",
+    function() {
+
+      gameState.questionNumber++;
+
+      showQuestion();
+
+    }
   );
 
 }
 
 
-/* =========================================
-   PAGE ELEMENTS
-========================================= */
+/* =========================================================
+   CHALLENGE BUTTONS
+========================================================= */
 
-const homePage =
-  document.getElementById("homePage");
+document
+  .querySelectorAll("[data-game]")
+  .forEach(
+    button => {
 
-const challengePage =
-  document.getElementById("challengePage");
+      button.addEventListener(
+        "click",
+        function() {
 
-const challengeCards =
-  document.querySelectorAll(".challenge-card");
+          const mode =
+            button.dataset.game;
 
-const backButton =
-  document.getElementById("backButton");
+          openGame(mode);
 
-const startButton =
-  document.getElementById("startButton");
+        }
+      );
 
-const howButton =
-  document.getElementById("howButton");
-
-const howModal =
-  document.getElementById("howModal");
-
-const closeHow =
-  document.getElementById("closeHow");
-
-const modalChallengeButton =
-  document.getElementById("modalChallengeButton");
-
-const beginChallengeButton =
-  document.getElementById("beginChallengeButton");
-
-const brandHome =
-  document.getElementById("brandHome");
+    }
+  );
 
 
-/* Challenge elements */
+/* =========================================================
+   DAILY LIMIT HELPERS
+========================================================= */
 
-const challengeEyebrow =
-  document.getElementById("challengeEyebrow");
+function getDailyLimit(mode) {
 
-const challengeTitle =
-  document.getElementById("challengeTitle");
-
-const challengeDescription =
-  document.getElementById("challengeDescription");
-
-const challengeLimit =
-  document.getElementById("challengeLimit");
-
-const challengeCompleted =
-  document.getElementById("challengeCompleted");
-
-const challengeRemaining =
-  document.getElementById("challengeRemaining");
-
-const startIcon =
-  document.getElementById("startIcon");
-
-const startHeading =
-  document.getElementById("startHeading");
-
-const startMessage =
-  document.getElementById("startMessage");
-
-
-/* =========================================
-   CURRENT CHALLENGE
-========================================= */
-
-let currentChallenge = null;
-
-
-/* =========================================
-   OPEN CHALLENGE
-========================================= */
-
-function openChallenge(type) {
-
-  const data = challengeData[type];
-
-  if (!data) {
-    return;
-  }
-
-
-  currentChallenge = type;
-
-
-  challengeEyebrow.textContent =
-    data.eyebrow;
-
-  challengeTitle.textContent =
-    data.title;
-
-  challengeDescription.textContent =
-    data.description;
-
-  challengeLimit.textContent =
-    data.limit;
-
-  startIcon.textContent =
-    data.symbol;
-
-
-  updateChallengeProgress();
-
-
-  homePage.classList.add("hidden");
-
-  challengePage.classList.remove("hidden");
-
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth"
-  });
+  return (
+    NIJOK.limits[mode] ||
+    1
+  );
 
 }
 
 
-/* =========================================
-   UPDATE PROGRESS
-========================================= */
+function getPlayedToday(mode) {
 
-function updateChallengeProgress() {
+  if (mode === "daily") {
+    return 0;
+  }
 
-  if (!currentChallenge) {
+  return player.today[mode] || 0;
+
+}
+
+
+function increaseDailyCount(mode) {
+
+  if (
+    mode === "daily" ||
+    !player.today.hasOwnProperty(mode)
+  ) {
     return;
   }
 
+  player.today[mode]++;
 
-  const data =
-    challengeData[currentChallenge];
+  savePlayer();
 
-  const progress =
-    getProgress();
+}
 
-  const completed =
-    Math.min(
-      progress[currentChallenge] || 0,
-      data.limit
+
+/* =========================================================
+   LIMIT MESSAGE
+========================================================= */
+
+function showLimitMessage(
+  mode,
+  limit
+) {
+
+  const info =
+    gameInfo[mode];
+
+  gameModeLabel.textContent =
+    info.label;
+
+  gameTitle.textContent =
+    "Today's Limit Reached";
+
+  gameDescription.textContent =
+    `You have completed ${limit} ${info.title} challenges for today. Come back tomorrow for fresh challenges.`;
+
+  gameQuestion.innerHTML = `
+    <div class="limit-message">
+      🌿 Great job, Food Explorer!
+      <br><br>
+      Your daily limit is complete.
+    </div>
+  `;
+
+  gameAnswers.innerHTML = "";
+
+  nextQuestion.style.display =
+    "none";
+
+  gameOverlay.classList.add("active");
+
+  gameOverlay.setAttribute(
+    "aria-hidden",
+    "false"
+  );
+
+  document.body.style.overflow =
+    "hidden";
+}
+
+
+/* =========================================================
+   COMING SOON
+========================================================= */
+
+function showComingSoon() {
+
+  gameQuestion.innerHTML = `
+    <div class="limit-message">
+      🚧
+      <br><br>
+      This challenge is being prepared.
+    </div>
+  `;
+
+  gameAnswers.innerHTML = "";
+
+  nextQuestion.style.display =
+    "none";
+}
+
+
+/* =========================================================
+   DASHBOARD
+========================================================= */
+
+function updateDashboard() {
+
+  const totalScore =
+    document.getElementById(
+      "totalScore"
     );
 
-  const remaining =
-    Math.max(
-      data.limit - completed,
-      0
+  const gamesPlayed =
+    document.getElementById(
+      "gamesPlayed"
+    );
+
+  const correctAnswers =
+    document.getElementById(
+      "correctAnswers"
+    );
+
+  const userLevel =
+    document.getElementById(
+      "userLevel"
+    );
+
+  const profileName =
+    document.getElementById(
+      "profileName"
+    );
+
+  const badgesEarned =
+    document.getElementById(
+      "badgesEarned"
     );
 
 
-  challengeCompleted.textContent =
-    completed;
+  if (totalScore) {
+    totalScore.textContent =
+      player.totalScore;
+  }
 
-  challengeRemaining.textContent =
-    remaining;
+  if (gamesPlayed) {
+    gamesPlayed.textContent =
+      player.gamesPlayed;
+  }
 
+  if (correctAnswers) {
+    correctAnswers.textContent =
+      player.correctAnswers;
+  }
 
-  if (remaining <= 0) {
+  if (userLevel) {
+    userLevel.textContent =
+      calculateLevel(
+        player.totalScore
+      );
+  }
 
-    startHeading.textContent =
-      "Today's challenge is complete!";
+  if (profileName) {
+    profileName.textContent =
+      player.name;
+  }
 
-    startMessage.textContent =
-      "Come back tomorrow for a new daily challenge.";
+  if (badgesEarned) {
 
-    beginChallengeButton.textContent =
-      "Completed Today";
-
-    beginChallengeButton.disabled =
-      true;
-
-  } else {
-
-    startHeading.textContent =
-      "Ready to play?";
-
-    startMessage.textContent =
-      `${remaining} challenge ${remaining === 1 ? "question" : "questions"} remaining today.`;
-
-    beginChallengeButton.textContent =
-      "Start Challenge →";
-
-    beginChallengeButton.disabled =
-      false;
+    badgesEarned.textContent =
+      calculateBadges(
+        player.totalScore
+      );
 
   }
 
 }
 
 
-/* =========================================
-   CHALLENGE CARDS
-========================================= */
+/* =========================================================
+   LEVEL SYSTEM
+========================================================= */
 
-challengeCards.forEach(card => {
+function calculateLevel(score) {
 
-  card.addEventListener("click", () => {
+  return Math.max(
+    1,
+    Math.floor(score / 100) + 1
+  );
 
-    const type =
-      card.dataset.challenge;
-
-    openChallenge(type);
-
-  });
-
-});
+}
 
 
-/* =========================================
-   START EXPLORING
-========================================= */
+/* =========================================================
+   BADGE SYSTEM FOUNDATION
+========================================================= */
 
-startButton.addEventListener(
-  "click",
-  () => {
+function calculateBadges(score) {
 
-    document
-      .getElementById("challenges")
-      .scrollIntoView({
-        behavior: "smooth"
-      });
-
+  if (score >= 1000) {
+    return 5;
   }
-);
 
-
-/* =========================================
-   HOW IT WORKS
-========================================= */
-
-howButton.addEventListener(
-  "click",
-  () => {
-
-    howModal.classList.remove("hidden");
-
+  if (score >= 500) {
+    return 4;
   }
-);
 
-
-closeHow.addEventListener(
-  "click",
-  () => {
-
-    howModal.classList.add("hidden");
-
+  if (score >= 250) {
+    return 3;
   }
-);
+
+  if (score >= 100) {
+    return 2;
+  }
+
+  if (score >= 50) {
+    return 1;
+  }
+
+  return 0;
+}
 
 
-howModal.addEventListener(
-  "click",
-  event => {
+/* =========================================================
+   PROFILE / LOGIN
+========================================================= */
 
-    if (event.target === howModal) {
+function openLogin() {
 
-      howModal.classList.add("hidden");
+  if (!loginModal) {
+    return;
+  }
+
+  loginModal.classList.add("active");
+
+  loginModal.setAttribute(
+    "aria-hidden",
+    "false"
+  );
+
+  document.body.style.overflow =
+    "hidden";
+
+}
+
+
+function closeLogin() {
+
+  if (!loginModal) {
+    return;
+  }
+
+  loginModal.classList.remove(
+    "active"
+  );
+
+  loginModal.setAttribute(
+    "aria-hidden",
+    "true"
+  );
+
+  document.body.style.overflow =
+    "";
+
+}
+
+
+if (profileButton) {
+
+  profileButton.addEventListener(
+    "click",
+    openLogin
+  );
+
+}
+
+
+if (closeModal) {
+
+  closeModal.addEventListener(
+    "click",
+    closeLogin
+  );
+
+}
+
+
+if (loginModal) {
+
+  loginModal.addEventListener(
+    "click",
+    function(event) {
+
+      if (
+        event.target === loginModal
+      ) {
+        closeLogin();
+      }
 
     }
+  );
 
-  }
-);
-
-
-modalChallengeButton.addEventListener(
-  "click",
-  () => {
-
-    howModal.classList.add("hidden");
-
-    document
-      .getElementById("challenges")
-      .scrollIntoView({
-        behavior: "smooth"
-      });
-
-  }
-);
+}
 
 
-/* =========================================
-   BACK TO CHALLENGES
-========================================= */
+/* =========================================================
+   CREATE ACCOUNT — LOCAL FOUNDATION
+========================================================= */
 
-backButton.addEventListener(
-  "click",
-  () => {
+if (loginButton) {
 
-    challengePage.classList.add("hidden");
+  loginButton.addEventListener(
+    "click",
+    function() {
 
-    homePage.classList.remove("hidden");
+      const name =
+        loginName.value.trim();
 
-    setTimeout(() => {
+      const email =
+        loginEmail.value.trim();
 
-      document
-        .getElementById("challenges")
-        .scrollIntoView({
-          behavior: "smooth"
-        });
+      if (!name) {
 
-    }, 50);
+        alert(
+          "Please enter your name."
+        );
 
-  }
-);
+        return;
+      }
 
+      player.name =
+        name;
 
-/* =========================================
-   BEGIN CHALLENGE
-========================================= */
+      player.email =
+        email;
 
-beginChallengeButton.addEventListener(
-  "click",
-  () => {
+      savePlayer();
 
-    if (!currentChallenge) {
-      return;
+      updateDashboard();
+
+      closeLogin();
+
+      alert(
+        `Welcome to NIJOK, ${name}! 🌿`
+      );
+
     }
+  );
+
+}
 
 
-    const progress =
-      getProgress();
+/* =========================================================
+   COMMUNITY COMMENTS
+========================================================= */
 
-    const limit =
-      challengeData[currentChallenge].limit;
+if (commentButton) {
+
+  commentButton.addEventListener(
+    "click",
+    addComment
+  );
+
+}
 
 
-    if (
-      progress[currentChallenge] >= limit
-    ) {
-      return;
-    }
+function addComment() {
+
+  if (!commentInput) {
+    return;
+  }
+
+  const text =
+    commentInput.value.trim();
+
+  if (!text) {
+
+    alert(
+      "Write something first."
+    );
+
+    return;
+  }
 
 
-    /*
-      QUESTION ENGINE WILL BE CONNECTED
-      IN THE NEXT STEP.
+  const card =
+    document.createElement("div");
 
-      For now this safely prepares
-      the challenge session.
-    */
+  card.className =
+    "comment-card";
 
-    sessionStorage.setItem(
-      "nijok_active_challenge",
-      currentChallenge
+
+  const avatar =
+    document.createElement("div");
+
+  avatar.className =
+    "comment-avatar";
+
+  avatar.textContent =
+    "🌿";
+
+
+  const content =
+    document.createElement("div");
+
+
+  const name =
+    document.createElement("strong");
+
+  name.textContent =
+    player.name;
+
+
+  const message =
+    document.createElement("span");
+
+  message.textContent =
+    text;
+
+
+  content.appendChild(name);
+
+  content.appendChild(message);
+
+  card.appendChild(avatar);
+
+  card.appendChild(content);
+
+  commentsList.prepend(card);
+
+  commentInput.value = "";
+
+}
+
+
+/* =========================================================
+   COUNTDOWN
+========================================================= */
+
+function updateCountdown() {
+
+  const now =
+    new Date();
+
+  const tomorrow =
+    new Date();
+
+  tomorrow.setDate(
+    now.getDate() + 1
+  );
+
+  tomorrow.setHours(
+    0,
+    0,
+    0,
+    0
+  );
+
+  const difference =
+    tomorrow - now;
+
+
+  const hours =
+    Math.floor(
+      difference /
+      (1000 * 60 * 60)
+    );
+
+  const minutes =
+    Math.floor(
+      (difference %
+        (1000 * 60 * 60)) /
+      (1000 * 60)
+    );
+
+  const seconds =
+    Math.floor(
+      (difference %
+        (1000 * 60)) /
+      1000
     );
 
 
-    startMessage.textContent =
-      "Challenge session ready. Questions will load in the next stage.";
+  const hoursElement =
+    document.getElementById(
+      "hours"
+    );
+
+  const minutesElement =
+    document.getElementById(
+      "minutes"
+    );
+
+  const secondsElement =
+    document.getElementById(
+      "seconds"
+    );
+
+
+  if (hoursElement) {
+
+    hoursElement.textContent =
+      String(hours).padStart(
+        2,
+        "0"
+      );
+
+  }
+
+  if (minutesElement) {
+
+    minutesElement.textContent =
+      String(minutes).padStart(
+        2,
+        "0"
+      );
+
+  }
+
+  if (secondsElement) {
+
+    secondsElement.textContent =
+      String(seconds).padStart(
+        2,
+        "0"
+      );
+
+  }
+
+}
+
+
+setInterval(
+  updateCountdown,
+  1000
+);
+
+
+/* =========================================================
+   HTML SAFETY
+========================================================= */
+
+function escapeHTML(value) {
+
+  const div =
+    document.createElement("div");
+
+  div.textContent =
+    value;
+
+  return div.innerHTML;
+
+}
+
+
+/* =========================================================
+   ESCAPE KEY
+========================================================= */
+
+document.addEventListener(
+  "keydown",
+  function(event) {
+
+    if (event.key === "Escape") {
+
+      if (
+        gameOverlay &&
+        gameOverlay.classList.contains(
+          "active"
+        )
+      ) {
+
+        closeGame();
+
+      }
+
+      if (
+        loginModal &&
+        loginModal.classList.contains(
+          "active"
+        )
+      ) {
+
+        closeLogin();
+
+      }
+
+    }
 
   }
 );
 
 
-/* =========================================
-   BRAND HOME
-========================================= */
+/* =========================================================
+   INITIALIZE
+========================================================= */
 
-brandHome.addEventListener(
-  "click",
-  event => {
+resetDailyProgressIfNeeded();
 
-    event.preventDefault();
+updateDashboard();
 
-    challengePage.classList.add("hidden");
-
-    homePage.classList.remove("hidden");
-
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth"
-    });
-
-  }
-);
-
-
-/* =========================================
-   INITIAL STATE
-========================================= */
-
-getProgress();
-
+updateCountdown();
 
 console.log(
-  "NIJOK Challenge System loaded."
+  "NIJOK Game Engine loaded successfully 🌿"
 );
