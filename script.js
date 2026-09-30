@@ -121,19 +121,8 @@
     closeModal("gameModal");
     answerLocked = false;
   }
-nextQuestion = function() {
-
-  if (state.mode === "guess") {
-
-    return nextGuessFoodStep();
-
-  }
-
-  return nijokOriginalNextQuestion();
-
-};
-  window.openGame=openGame;window.closeGame=closeGame;window.nextQuestion=nextQuestion;
-
+window.openGame = openGame;
+window.closeGame = closeGame;
   /* =========================================================
      GAME HEADER
      ========================================================= */
