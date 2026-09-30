@@ -121,9 +121,276 @@
     closeModal("gameModal");
     answerLocked = false;
   }
+/* =========================================
+   NIJOK — GUESS THE FOOD PATCH
+   Step 1 only
+========================================= */
 
-  window.openGame = openGame;
-  window.closeGame = closeGame;
+const nijokOriginalOpenGame = openGame;
+
+openGame = function(mode = "quiz") {
+
+  // Only change Guess the Food.
+  // All other games continue using the existing engine.
+  if (mode !== "guess") {
+    return nijokOriginalOpenGame(mode);
+  }
+
+  clearInterval(state.timer);
+
+  state.mode = "guess";
+  state.index = 0;
+  state.correct = 0;
+  state.answered = false;
+  state.sessionPoints = 0;
+  state.total = 10;
+
+  // Select exactly 10 random Guess Food questions.
+  state.pool = shuffle(GUESS).slice(0, 10);
+
+  modal("#gameModal");
+
+  $("#gameTitle").textContent = "Guess the Food";
+  $("#gameDescription").textContent =
+    "Look closely at the food image and choose the correct answer.";
+
+  $("#gameMode").textContent = "GUESS THE FOOD";
+
+  $("#nextBtn").textContent = "Next Food →";
+  $("#nextBtn").onclick = nextQuestion;
+
+  renderGuessFoodStep();
+};
+
+
+function renderGuessFoodStep() {
+
+  clearInterval(state.timer);
+
+  state.answered = false;
+
+  const q = state.pool[state.index];
+
+  if (!q) {
+    finishGuessFood();
+    return;
+  }
+
+  $("#questionCounter").textContent =
+    `${state.index + 1} / ${state.total}`;
+
+  $("#gameProgress").style.width =
+    `${(state.index / state.total) * 100}%`;
+
+  $("#gameScore").textContent =
+    `Score: ${state.correct * 10}`;
+
+  $("#nextBtn").disabled = true;
+  $("#nextBtn").textContent = "Next Food →";
+
+  $("#gameQuestion").innerHTML = `
+    <img
+      class="game-image"
+      src="${q.img}"
+      alt="Guess the food"
+      onerror="this.src='https://loremflickr.com/900/600/food?lock=${state.index + 500}'"
+    >
+
+    <div class="question-text">
+      ${q.q}
+    </div>
+  `;
+
+  $("#gameAnswers").innerHTML =
+    q.a.map((answer, index) => `
+      <button
+        class="answer"
+        data-answer="${index}">
+        <b>${String.fromCharCode(65 + index)}.</b>
+        ${answer}
+      </button>
+    `).join("");
+
+  $$("#gameAnswers .answer").forEach(button => {
+
+    button.onclick = () => {
+      answerGuessFoodStep(
+        Number(button.dataset.answer)
+      );
+    };
+
+  });
+}
+
+
+function answerGuessFoodStep(choice) {
+
+  if (state.answered) return;
+
+  const q = state.pool[state.index];
+
+  if (!q) return;
+
+  state.answered = true;
+
+  const buttons =
+    $$("#gameAnswers .answer");
+
+  buttons.forEach((button, index) => {
+
+    button.disabled = true;
+
+    if (index === q.c) {
+      button.classList.add("correct");
+    }
+
+    if (index === choice && index !== q.c) {
+      button.classList.add("wrong");
+    }
+
+  });
+
+  if (choice === q.c) {
+
+    state.correct++;
+
+    state.sessionPoints += 10;
+
+    toast("Correct! 🌿");
+
+  } else {
+
+    toast(
+      `Nice try! The correct answer is ${q.a[q.c]}.`
+    );
+
+  }
+
+  $("#gameScore").textContent =
+    `Score: ${state.correct * 10}`;
+
+  $("#nextBtn").disabled = false;
+
+  $("#nextBtn").textContent =
+    state.index === state.total - 1
+      ? "See My Score →"
+      : "Next Food →";
+}
+
+
+function nextGuessFoodStep() {
+
+  if (!state.answered) return;
+
+  state.index++;
+
+  if (state.index >= state.total) {
+
+    finishGuessFood();
+
+    return;
+
+  }
+
+  renderGuessFoodStep();
+}
+
+
+function finishGuessFood() {
+
+  clearInterval(state.timer);
+
+  $("#gameProgress").style.width = "100%";
+
+  const percentage =
+    Math.round(
+      (state.correct / state.total) * 100
+    );
+
+  $("#questionCounter").textContent =
+    "COMPLETE";
+
+  $("#gameScore").textContent =
+    `Score: ${state.sessionPoints}`;
+
+  $("#gameQuestion").innerHTML = `
+    <div class="question-text">
+      Guess the Food Complete! 🌿
+    </div>
+
+    <p>
+      You answered
+      <b>${state.correct}</b>
+      out of
+      <b>${state.total}</b>
+      correctly.
+    </p>
+
+    <div
+      style="
+        background:#e4eed9;
+        border-radius:18px;
+        padding:25px;
+        margin-top:20px;
+        text-align:center;
+      "
+    >
+      <strong
+        style="
+          font:600 42px var(--serif);
+        "
+      >
+        ${state.sessionPoints}
+      </strong>
+
+      <br>
+
+      <small>
+        POINTS · ${percentage}% ACCURACY
+      </small>
+    </div>
+  `;
+
+  $("#gameAnswers").innerHTML = "";
+
+  $("#nextBtn").disabled = false;
+
+  $("#nextBtn").textContent =
+    "Play Guess the Food Again →";
+
+  $("#nextBtn").onclick =
+    () => openGame("guess");
+
+  // Add the actual earned points.
+  updateStats(
+    state.sessionPoints,
+    state.correct
+  );
+
+  toast(
+    `Guess the Food complete! +${state.sessionPoints} points 🌿`
+  );
+}
+
+
+/*
+  Redirect the shared Next button
+  to our Guess Food flow.
+*/
+const nijokOriginalNextQuestion = nextQuestion;
+
+nextQuestion = function() {
+
+  if (state.mode === "guess") {
+
+    return nextGuessFoodStep();
+
+  }
+
+  return nijokOriginalNextQuestion();
+
+};
+  window.openGame=openGame;window.closeGame=closeGame;window.nextQuestion=nextQuestion;
 
   /* =========================================================
      GAME HEADER
